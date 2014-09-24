@@ -1,7 +1,8 @@
 from random import *
 import math
 import geo2d.geometry
-                 
+import itertools
+
 class Critter:
     name  = None
     brain = None
@@ -84,13 +85,11 @@ class World:
         for tick in range(0,100):
             for c in self.critters:
                  c.on_tick()
+            for c1,c2 in itertools.combinations(self.critters,2):
+                 if c1.body.location.distance_to(c2.body.location) < 3:
+                     print("{.name} collided with {.name}!".format(c1,c2))
     def wrap(self,p):
-        x = p.x % self.width
-        y = p.y % self.height
-        if x == p.x and y == p.y:
-            return p
-        else:
-            return Location(x,y)
+        return Location(p.x % self.width,p.y % self.height)
 
 w = World()
 cs = [Critter(w,CritterBrain,"c{}".format(i)) for i in range(1,10)]
