@@ -1,5 +1,7 @@
 from random import *
-
+import math
+import geo2d.geometry
+                 
 class Critter:
     name  = None
     brain = None
@@ -15,6 +17,9 @@ class Critter:
         print(self.name)
         self.brain.dump_status()
         self.body.dump_status()
+    def on_tick(self):
+        self.brain.on_tick()
+        self.body.on_tick()
 
 class CritterBrain:
     def __init__(self,body):
@@ -48,16 +53,21 @@ class CritterBody:
     world    = None
     location = None
     shape    = None
+    heading  = None
     def __init__(self):
-        pass
+        self.heading = Heading(uniform(0.0,2*math.pi))
     def dump_status(self):
         print(self.location)
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
+    def on_tick(self):
+        self.location.translate(self.heading.x,self.heading.y)
+        self.location = self.world.wrap(self.location)
 
-def Location(x,y):
-    return (x,y)
+Location = geo2d.geometry.Point
+def Heading(dir):
+    return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
 
 class World:
     height = 100
@@ -70,8 +80,22 @@ class World:
     def dump_status(self):
         for c in self.critters:
              c.dump_status()
+    def run(self):
+        for tick in range(0,100):
+            for c in self.critters:
+                 c.on_tick()
+    def wrap(self,p):
+        x = p.x % self.width
+        y = p.y % self.height
+        if x == p.x and y == p.y:
+            return p
+        else:
+            return Location(x,y)
 
 w = World()
 cs = [Critter(w,CritterBrain,"c{}".format(i)) for i in range(1,10)]
 w.dump_status()
 
+w.run()
+
+w.dump_status()
