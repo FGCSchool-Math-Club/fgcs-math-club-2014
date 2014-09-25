@@ -80,7 +80,7 @@ class CritterBody:
     def draw(self, canvas,s):
         r = self.radius
         if self.tk_id is None:
-            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="red")
+            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255)))
             self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
         loc = self.location
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
