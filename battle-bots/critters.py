@@ -108,6 +108,11 @@ class World:
             for c1,c2 in itertools.combinations(self.critters,2):
                  if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
                      print("{.name} collided with {.name}!".format(c1,c2))
+                     v = geo2d.geometry.Vector(c2.body.location,c1.body.location).normalized
+                     c1.body.radius *= 0.9
+                     c2.body.radius *= 0.9
+                     c1.body.heading =  v
+                     c2.body.heading = -v
             self.world_view.on_tick()
             time.sleep(0.1)
     def wrap(self,p):
