@@ -23,6 +23,9 @@ class Critter:
     def on_tick(self):
         self.brain.on_tick()
         self.body.on_tick()
+    def on_collision(self,dir,other):
+        self.body.on_collision(dir,other)
+        self.brain.on_collision(dir,other)
     def draw(self, canvas, scale):
         self.body.draw(canvas, scale)
 class CritterBrain:
@@ -30,9 +33,9 @@ class CritterBrain:
         self.body = body
     def dump_status(self):
         pass
-    def on_collision(self,other):
+    def on_collision(self,dir,other):
         pass
-    def on_attack(self,attacker):
+    def on_attack(self,dir,attacker):
         pass
     def on_tick(self):
         pass
@@ -71,6 +74,9 @@ class CritterBody:
     def on_tick(self):
         self.location.translate(self.heading.x,self.heading.y)
         self.location = self.world.wrap(self.location)
+    def on_collision(self,dir,other):
+        self.radius  *= 0.9
+        self.heading -= dir
     def draw(self, canvas,s):
         r = self.radius
         if self.tk_id is None:
@@ -108,10 +114,8 @@ class World:
                  if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
                      print("{.name} collided with {.name}!".format(c1,c2))
                      v = geo2d.geometry.Vector(c2.body.location,c1.body.location).normalized
-                     c1.body.radius *= 0.9
-                     c2.body.radius *= 0.9
-                     c1.body.heading =  v
-                     c2.body.heading = -v
+                     c1.on_collision(-v,c2)
+                     c2.on_collision( v,c1)
             self.world_view.on_tick()
             time.sleep(0.1)
     def wrap(self,p):
