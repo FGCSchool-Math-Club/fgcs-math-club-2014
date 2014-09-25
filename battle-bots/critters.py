@@ -143,7 +143,7 @@ class World:
     def display_objects(self):
         return self.critters + self.food
     def run(self):
-        for tick in range(0,500):
+        while self.world_view.window_open:
             shuffle(self.critters)
             for f in self.food:
                 if f.value <= 0:
