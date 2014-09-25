@@ -23,8 +23,8 @@ class Critter:
     def on_tick(self):
         self.brain.on_tick()
         self.body.on_tick()
-    def draw(self, canvas):
-        self.body.draw(canvas)
+    def draw(self, canvas, scale):
+        self.body.draw(canvas, scale)
 class CritterBrain:
     def __init__(self,body):
         self.body = body
@@ -71,8 +71,7 @@ class CritterBody:
     def on_tick(self):
         self.location.translate(self.heading.x,self.heading.y)
         self.location = self.world.wrap(self.location)
-    def draw(self, canvas):
-        s = 500/100
+    def draw(self, canvas,s):
         r = self.radius
         if self.tk_id is None:
             self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="red")
@@ -92,7 +91,7 @@ class World:
     width  = 100
     def __init__(self):
         self.critters = []
-        self.world_view = WorldView(self)
+        self.world_view = WorldView(self,5)
     def spawn(self,critter):
         self.critters.append(critter)
         critter.body.teleport_to(self,Location(randrange(0,self.width),randrange(0,self.height)))
@@ -119,14 +118,15 @@ class World:
         return Location(p.x % self.width,p.y % self.height)
 
 class WorldView:
-    def __init__(self,world):
+    def __init__(self,world,scale):
         self.world = world
+        self.scale = scale
         self.tk = Tk()
         self.tk.title("Battle bots")
         self.tk.resizable(0, 0)
         self.tk.wm_attributes("-topmost", 1)
-        self.canvas_height = 500
-        self.canvas_width = 500
+        self.canvas_height = scale*world.height
+        self.canvas_width  = scale*world.width
         self.canvas = Canvas(self.tk, width=self.canvas_width, height=self.canvas_height, highlightthickness=0)
         self.canvas.pack()
         self.tk.update()
@@ -146,7 +146,7 @@ class WorldView:
     def on_tick(self):
         if self.window_open:
             for sprite in self.world.display_objects():
-                sprite.draw(self.canvas)
+                sprite.draw(self.canvas,self.scale)
             self.tk.update_idletasks()
             self.tk.update()
 
