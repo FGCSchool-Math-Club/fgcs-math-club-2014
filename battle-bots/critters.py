@@ -47,23 +47,7 @@ class CritterBrain:
     def on_attack(self,dir,attacker):
         pass
     def on_tick(self):
-        pass
-    def left(self,n):
-        pass
-    def right(self,n):
-        pass
-    def forward(self,n):
-        pass
-    def attack(self,target):
-        pass
-    def eat(self,target):
-        pass
-    def sight(self,n):
-        pass
-        # return set of n tuples: (color,distance,direction,width,change)
-    def smell(self,n):
-        pass
-        # return set of n tuples (strength,smell,change)  
+        self.body.turn(uniform(-0.1,+0.1)*randrange(1,4))
 
 class CritterBody:
     world    = None
@@ -88,6 +72,18 @@ class CritterBody:
     def on_collision(self,dir,other):
         self.radius  *= 0.9
         self.heading -= dir
+    def turn(self,n):
+        self.heading = Heading(self.heading.phi+n)
+    def attack(self,target):
+        pass
+    def eat(self,target):
+        pass
+    def sight(self,n):
+        pass
+        # return set of n tuples: (color,distance,direction,width,change)
+    def smell(self,n):
+        pass
+        # return set of n tuples (strength,smell,change)  
     def draw(self, canvas,s):
         r    = self.radius
         loc  = self.location
