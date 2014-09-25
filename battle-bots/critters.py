@@ -123,7 +123,7 @@ class Food:
         if self.value > 0:
             r = math.sqrt(self.value)
             if self.tk_id is None:
-                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="Green")
+                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="dark green", outline="green")
             canvas.tag_lower(self.tk_id)
             loc = self.location
             canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
