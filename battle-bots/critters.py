@@ -75,6 +75,8 @@ class CritterBody:
     def __init__(self,critter):
         self.critter = critter
         self.heading = Heading(uniform(0.0,2*math.pi))
+        profile = [uniform(0.5,0.8) for i in range(0,10)]
+        self.shape   = [1.0,1.0]+profile+list(reversed(profile))
     def dump_status(self):
         print(self.location)
     def teleport_to(self,world,loc):
@@ -87,13 +89,18 @@ class CritterBody:
         self.radius  *= 0.9
         self.heading -= dir
     def draw(self, canvas,s):
-        r = self.radius
+        r    = self.radius
+        loc  = self.location
+        phi  = self.heading.phi
+        q    = 2*math.pi/len(self.shape)
+        outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
         if self.tk_id is None:
-            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill=random_color())
+            #self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill=random_color())
+            self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
             self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
-        loc = self.location
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
-        canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
+        canvas.coords(self.tk_id,      *outline)
+        #canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
 
 class Food:
     world    = None
