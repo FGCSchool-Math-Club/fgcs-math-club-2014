@@ -82,7 +82,6 @@ class CritterBody:
         if self.tk_id is None:
             self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="red")
             self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
-            #canvas.move([self.tk_id,self.tk_text_id], 245, 100)
         loc = self.location
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
         canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
