@@ -5,6 +5,14 @@ import itertools
 from tkinter import *
 import time
 
+def random_color():
+    return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
+
+
+Location = geo2d.geometry.Point
+def Heading(dir):
+    return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
+
 class Critter:
     name  = None
     brain = None
@@ -28,6 +36,7 @@ class Critter:
         self.brain.on_collision(dir,other)
     def draw(self, canvas, scale):
         self.body.draw(canvas, scale)
+
 class CritterBrain:
     def __init__(self,body):
         self.body = body
@@ -80,16 +89,41 @@ class CritterBody:
     def draw(self, canvas,s):
         r = self.radius
         if self.tk_id is None:
-            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255)))
+            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill=random_color())
             self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
         loc = self.location
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
         canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
 
-
-Location = geo2d.geometry.Point
-def Heading(dir):
-    return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
+class Food:
+    world    = None
+    location = None
+    value    = None
+    tk_id = None
+    def __init__(self,world,loc,value):
+        self.world = world
+        self.value = value
+        self.location = loc
+    def dump_status(self):
+        print(self.location)
+    def on_tick(self):
+        # Could spoil, spread, or...?
+        pass
+    def on_collision(self,dir,other):
+        self.radius  *= 0.9
+        self.heading -= dir
+    def draw(self, canvas,s):
+        if self.value > 0:
+            r = math.sqrt(self.value)
+            if self.tk_id is None:
+                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="Green")
+            canvas.tag_lower(self.tk_id)
+            loc = self.location
+            canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
+        else:
+            if self.tk_id:
+                canvas.delete(self.tk_id)
+                self.tk_id = None
 
 class World:
     height = 100
@@ -97,18 +131,29 @@ class World:
     def __init__(self):
         self.critters = []
         self.world_view = WorldView(self,5)
+        self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
+    def random_location(self):
+        return Location(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
         self.critters.append(critter)
-        critter.body.teleport_to(self,Location(randrange(0,self.width),randrange(0,self.height)))
+        critter.body.teleport_to(self,self.random_location())
     def dump_status(self):
         for c in self.critters:
              c.dump_status()
     def display_objects(self):
-        return self.critters
+        return self.critters + self.food
     def run(self):
-        for tick in range(0,100):
+        for tick in range(0,500):
+            shuffle(self.critters)
+            for f in self.food:
+                if f.value <= 0:
+                    self.food.remove(f)
             for c in self.critters:
                  c.on_tick()
+                 for f in self.food:
+                     if f.value > 0 and c.body.location.distance_to(f.location) < c.body.radius:
+                         f.value -= 1
+                         c.body.radius = math.sqrt(c.body.radius**2+1)
             for c1,c2 in itertools.combinations(self.critters,2):
                  if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
                      print("{.name} collided with {.name}!".format(c1,c2))
