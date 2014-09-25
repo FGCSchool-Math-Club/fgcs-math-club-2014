@@ -13,7 +13,7 @@ class Critter:
     def __init__(self,world,brain_class,name):
         self.name  = name
         self.world = world
-        self.body  = CritterBody()
+        self.body  = CritterBody(self)
         self.brain = brain_class(self.body)
         world.spawn(self)
     def dump_status(self):
@@ -60,7 +60,8 @@ class CritterBody:
     heading  = None
     radius   = 5
     tk_id = None
-    def __init__(self):
+    def __init__(self,critter):
+        self.critter = critter
         self.heading = Heading(uniform(0.0,2*math.pi))
     def dump_status(self):
         print(self.location)
@@ -72,11 +73,14 @@ class CritterBody:
         self.location = self.world.wrap(self.location)
     def draw(self, canvas):
         s = 500/100
+        r = self.radius
         if self.tk_id is None:
-            self.tk_id = canvas.create_oval(50, 50, s*self.radius, s*self.radius, fill="red")
-            canvas.move(self.tk_id, 245, 100)
+            self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="red")
+            self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
+            #canvas.move([self.tk_id,self.tk_text_id], 245, 100)
         loc = self.location
-        canvas.coords(self.tk_id, s*loc.x, s*loc.y,s*loc.x+25, s*loc.y+25)
+        canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
+        canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
 
 
 Location = geo2d.geometry.Point
