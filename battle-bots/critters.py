@@ -156,7 +156,7 @@ class World:
                          c.body.radius = math.sqrt(c.body.radius**2+1)
             for c1,c2 in itertools.combinations(self.critters,2):
                  if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
-                     print("{.name} collided with {.name}!".format(c1,c2))
+                     #print("{.name} collided with {.name}!".format(c1,c2))
                      v = geo2d.geometry.Vector(c2.body.location,c1.body.location).normalized
                      c1.on_collision(-v,c2)
                      c2.on_collision( v,c1)
@@ -200,8 +200,8 @@ class WorldView:
 
 w = World()
 cs = [Critter(w,CritterBrain,"c{}".format(i)) for i in range(1,10)]
-w.dump_status()
+#w.dump_status()
 
 w.run()
 
-w.dump_status()
+#w.dump_status()
