@@ -47,7 +47,7 @@ class CritterBrain:
     def on_attack(self,dir,attacker):
         pass
     def on_tick(self):
-        self.body.turn(uniform(-0.1,+0.1)*randrange(1,4))
+        pass
 
 class CritterBody:
     world    = None
@@ -202,7 +202,8 @@ class WorldView:
             self.tk.update()
 
 w = World()
-cs = [Critter(w,CritterBrain,"c{}".format(i)) for i in range(1,10)]
+exec(open("markus/wander_brain.py", "r").read())
+cs = [Critter(w,WanderBrain,"c{}".format(i)) for i in range(1,10)]
 #w.dump_status()
 
 w.run()
