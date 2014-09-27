@@ -14,10 +14,6 @@ def Heading(dir):
     return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
 
 class Critter:
-    name  = None
-    brain = None
-    body  = None
-    world = None
     def __init__(self,world,brain_class,name):
         self.name  = name
         self.world = world
@@ -50,17 +46,13 @@ class CritterBrain:
         pass
 
 class CritterBody:
-    world    = None
-    location = None
-    shape    = None
-    heading  = None
-    radius   = 5
-    tk_id = None
     def __init__(self,critter):
         self.critter = critter
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,1.0]+profile+list(reversed(profile))
+        self.radius = 5
+        self.tk_id = None
     def dump_status(self):
         print(self.location)
     def teleport_to(self,world,loc):
@@ -99,14 +91,11 @@ class CritterBody:
         #canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
 
 class Food:
-    world    = None
-    location = None
-    value    = None
-    tk_id = None
     def __init__(self,world,loc,value):
         self.world = world
         self.value = value
         self.location = loc
+        self.tk_id = None
     def dump_status(self):
         print(self.location)
     def on_tick(self):
@@ -201,11 +190,30 @@ class WorldView:
             self.tk.update_idletasks()
             self.tk.update()
 
+class Users:
+    registered = []
+    current = None
+    def register(name):
+        Users.registered.append(name)
+        Users.current = name
+
+class Brains:
+    registered = {}
+    available = []
+    def register(brain_class):
+        u = Users.current
+        if not u in Brains.registered.keys():
+            Brains.registered[u] = []
+        Brains.registered[u].append(brain_class)
+        Brains.available.append(brain_class)
+
+import glob,re
+for file in glob.glob("*_brains.py"):
+    match = re.search('^(.+)_brains.py$', file)
+    if match:
+        Users.register(match.group(1))
+        exec(open(file, "r").read())
+
 w = World()
-exec(open("markus/wander_brain.py", "r").read())
-cs = [Critter(w,WanderBrain,"c{}".format(i)) for i in range(1,10)]
-#w.dump_status()
-
+[Critter(w,choice(Brains.available),"c{}".format(i)) for i in range(1,10)]
 w.run()
-
-#w.dump_status()
