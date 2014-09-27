@@ -8,7 +8,6 @@ import time
 def random_color():
     return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
 
-
 Location = geo2d.geometry.Point
 def Heading(dir):
     return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
@@ -25,11 +24,11 @@ class Critter:
         self.brain.dump_status()
         self.body.dump_status()
     def on_tick(self):
-        self.brain.on_tick()
+        self.brain.on_tick(self.body.senses)
         self.body.on_tick()
     def on_collision(self,dir,other):
         self.body.on_collision(dir,other)
-        self.brain.on_collision(dir,other)
+        self.brain.on_collision(dir,other,self.body.senses)
     def draw(self, canvas, scale):
         self.body.draw(canvas, scale)
 
@@ -38,11 +37,11 @@ class CritterBrain:
         self.body = body
     def dump_status(self):
         pass
-    def on_collision(self,dir,other):
+    def on_collision(self,dir,other,senses):
         pass
-    def on_attack(self,dir,attacker):
+    def on_attack(self,dir,attacker,senses):
         pass
-    def on_tick(self):
+    def on_tick(self,senses):
         pass
 
 class CritterBody:
@@ -70,12 +69,11 @@ class CritterBody:
         pass
     def eat(self,target):
         pass
-    def sight(self,n):
-        pass
-        # return set of n tuples: (color,distance,direction,width,change)
-    def smell(self,n):
-        pass
-        # return set of n tuples (strength,smell,change)  
+    def senses(self):
+        return {
+            'sight': Set(), # return set tuples: (color,distance,direction,width,change)
+            'smell': Set(), # return set tuples: (strength,smell,change)
+          }
     def draw(self, canvas,s):
         r    = self.radius
         loc  = self.location
@@ -83,12 +81,10 @@ class CritterBody:
         q    = 2*math.pi/len(self.shape)
         outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
         if self.tk_id is None:
-            #self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill=random_color())
             self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
             self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
         canvas.coords(self.tk_id,      *outline)
-        #canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
 
 class Food:
     def __init__(self,world,loc,value):
@@ -148,7 +144,6 @@ class World:
                          c.body.radius = math.sqrt(c.body.radius**2+1)
             for c1,c2 in itertools.combinations(self.critters,2):
                  if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
-                     #print("{.name} collided with {.name}!".format(c1,c2))
                      v = geo2d.geometry.Vector(c2.body.location,c1.body.location).normalized
                      c1.on_collision(-v,c2)
                      c2.on_collision( v,c1)
