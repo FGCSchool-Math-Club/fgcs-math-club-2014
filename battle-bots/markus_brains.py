@@ -17,6 +17,6 @@ class ZigBrain(CritterBrain):
         if randrange(1,10) == 1:
             self.body.turn(uniform(-1,1))
         else:
-            self.body.heading *= 1.1
+            self.body.heading *= 1.01
 
 Brains.register(ZigBrain)
