@@ -58,7 +58,6 @@ class IntervalSet:
         return "{"+s+"}"
     __repr__ = __str__
         
-
 x = IntervalSet(5,15,neg_inf=True)
 
 assert str(x) == "{..5, 15..}"
@@ -69,3 +68,23 @@ assert not x.contains(10)
 assert x.contains(20)
 assert str(IntervalSet(5,15,neg_inf=True).union(IntervalSet(10)))        == "{..5, 10..}"
 assert str(IntervalSet(5,15,neg_inf=True).intersection(IntervalSet(10))) == "{15..}"
+
+class ModuloIntervalSet(IntervalSet):
+    low  = 0.0
+    high = 1.0
+    def __init__(self,*inflections)
+        assert not odd(len(inflections)),"Modulo intervals must have an even number of inflections."
+        assert len(inflections) <= 2,"For now, modulo intervals can be initialized with at most 2 inflections."
+        assert len([i for i in inflections if not self.low <= i <= self.high]) == 0,"Inflection out of range."
+        self.span = self.high - self.low
+        inflections = [((i-self.low) % self.high) + self.low for i in inflections]
+        self.neg_inf = len(inflections) == 2 and inflections[0] > inflections[1]
+        self.inflections = sorted(inflections)
+    # intercept meld and assert that all must be modulo sets with equal lows & highs?
+    # fix meld & inverse to produce a set of the same class.
+
+class AnglularIntervalSet(ModuloIntervalSet):
+    low  = -math.pi
+    high =  math.pi
+
+# tests!
