@@ -12,6 +12,33 @@ Location = geo2d.geometry.Point
 def Heading(dir):
     return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
 
+class PhysicalObject:
+    def __init__(self,world,loc):
+        self.world = world
+        self.location = loc
+        self.tk_id = None
+        self.color = {"fill": "black"}
+    def dump_status(self):
+        print(self.location)
+    def on_tick(self):
+        pass
+    def on_collision(self,dir,other):
+        pass
+    def radius(self):
+        return 1
+    def draw(self, canvas,s):
+        r = self.radius()
+        if r > 0:
+            if self.tk_id is None:
+                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, **self.color)
+            canvas.tag_lower(self.tk_id)
+            loc = self.location
+            canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
+        else:
+            if self.tk_id:
+                canvas.delete(self.tk_id)
+                self.tk_id = None
+
 class Critter:
     def __init__(self,world,brain_class,name):
         self.name  = name
@@ -88,32 +115,19 @@ class CritterBody:
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
         canvas.coords(self.tk_id,      *outline)
 
-class Food:
+class Food(PhysicalObject):
     def __init__(self,world,loc,value):
-        self.world = world
+        PhysicalObject.__init__(self,world,loc)
         self.value = value
-        self.location = loc
-        self.tk_id = None
-    def dump_status(self):
-        print(self.location)
+        self.color = {"fill": "dark green", "outline": "green"}
     def on_tick(self):
         # Could spoil, spread, or...?
         pass
     def on_collision(self,dir,other):
         self.radius  *= 0.9
         self.heading -= dir
-    def draw(self, canvas,s):
-        if self.value > 0:
-            r = math.sqrt(self.value)
-            if self.tk_id is None:
-                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, fill="dark green", outline="green")
-            canvas.tag_lower(self.tk_id)
-            loc = self.location
-            canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
-        else:
-            if self.tk_id:
-                canvas.delete(self.tk_id)
-                self.tk_id = None
+    def radius(self):
+        return math.sqrt(self.value)
 
 class World:
     height = 100
