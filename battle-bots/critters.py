@@ -71,8 +71,10 @@ class CritterBody:
         pass
     def senses(self):
         return {
-            'sight': Set(), # return set tuples: (color,distance,direction,width,change)
-            'smell': Set(), # return set tuples: (strength,smell,change)
+            'sight':   Set(), # return set tuples: (color,distance,direction,width,change)
+            'smell':   Set(), # return set tuples: (strength,smell,change)
+            'gps':     self.location,
+            'compass': self.heading,
           }
     def draw(self, canvas,s):
         r    = self.radius
