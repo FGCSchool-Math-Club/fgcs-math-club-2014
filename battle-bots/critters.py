@@ -115,7 +115,7 @@ class Food:
 
 class World:
     height = 100
-    width  = 100
+    width  = 250
     def __init__(self):
         self.critters = []
         self.world_view = WorldView(self,5)
