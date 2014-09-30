@@ -43,63 +43,47 @@ class Critter:
     def __init__(self,world,brain_class,name):
         self.name  = name
         self.world = world
-        self.body  = CritterBody(self)
-        self.brain = brain_class(self.body)
-        world.spawn(self)
-    def dump_status(self):
-        print(self.name)
-        self.brain.dump_status()
-        self.body.dump_status()
-    def on_tick(self):
-        self.brain.on_tick(self.body.senses)
-        self.body.on_tick()
-    def on_collision(self,dir,other):
-        self.body.on_collision(dir,other)
-        self.brain.on_collision(dir,other,self.body.senses)
-    def draw(self, canvas, scale):
-        self.body.draw(canvas, scale)
-
-class CritterBrain:
-    def __init__(self,body):
-        self.body = body
-    def dump_status(self):
-        pass
-    def on_collision(self,dir,other,senses):
-        pass
-    def on_attack(self,dir,attacker,senses):
-        pass
-    def on_tick(self,senses):
-        pass
-
-class CritterBody:
-    def __init__(self,critter):
-        self.critter = critter
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,1.0]+profile+list(reversed(profile))
         self.radius = 5
         self.tk_id = None
+        self.brain = brain_class()
+        world.spawn(self)
     def dump_status(self):
+        print(self.name)
+        self.brain.dump_status()
         print(self.location)
-    def teleport_to(self,world,loc):
-        self.world    = world
-        self.location = loc
     def on_tick(self):
+        self.act(self.brain.on_tick(self.senses()))
         self.location.translate(self.heading.x,self.heading.y)
         self.location = self.world.wrap(self.location)
     def on_collision(self,dir,other):
         self.radius  *= 0.9
         self.heading -= dir
-    def turn(self,n):
-        self.heading = Heading(self.heading.phi+n)
-    def attack(self,target):
-        pass
-    def eat(self,target):
-        pass
+        self.act(self.brain.on_collision(dir,other,self.senses()))
+    def teleport_to(self,world,loc):
+        self.world    = world
+        self.location = loc
+    def act(self,cmd):
+        if not cmd is None:
+            word = cmd.split()
+            if word[0] == "Stop":
+                self.heading /= 10000
+            elif word[0] == "Turn":
+                self.heading = Heading(self.heading.phi+float(word[1]))
+            elif word[0] == "Accelerate":
+                self.heading *= float(word[1])
+            elif word[0] == "Attack":
+                pass
+            elif word[0] == "Eat":
+                pass
+            else:
+                print("Unknown command: {}".format(cmd))
     def senses(self):
         return {
-            'sight':   Set(), # return set tuples: (color,distance,direction,width,change)
-            'smell':   Set(), # return set tuples: (strength,smell,change)
+            'sight':   set(), # return set tuples: (color,distance,direction,width,change)
+            'smell':   set(), # return set tuples: (strength,smell,change)
             'gps':     self.location,
             'compass': self.heading,
           }
@@ -111,9 +95,19 @@ class CritterBody:
         outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
         if self.tk_id is None:
             self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
-            self.tk_text_id = canvas.create_text(50,50, text=self.critter.name)
+            self.tk_text_id = canvas.create_text(50,50, text=self.name)
         canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
         canvas.coords(self.tk_id,      *outline)
+
+class CritterBrain:
+    def dump_status(self):
+        pass
+    def on_collision(self,dir,other,senses):
+        pass
+    def on_attack(self,dir,attacker,senses):
+        pass
+    def on_tick(self,senses):
+        pass
 
 class Food(PhysicalObject):
     def __init__(self,world,loc,value):
@@ -140,7 +134,7 @@ class World:
         return Location(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
         self.critters.append(critter)
-        critter.body.teleport_to(self,self.random_location())
+        critter.teleport_to(self,self.random_location())
     def dump_status(self):
         for c in self.critters:
              c.dump_status()
@@ -155,12 +149,12 @@ class World:
             for c in self.critters:
                  c.on_tick()
                  for f in self.food:
-                     if f.value > 0 and c.body.location.distance_to(f.location) < c.body.radius:
+                     if f.value > 0 and c.location.distance_to(f.location) < c.radius:
                          f.value -= 1
-                         c.body.radius = math.sqrt(c.body.radius**2+1)
+                         c.radius = math.sqrt(c.radius**2+1)
             for c1,c2 in itertools.combinations(self.critters,2):
-                 if c1.body.location.distance_to(c2.body.location) < c1.body.radius + c2.body.radius:
-                     v = geo2d.geometry.Vector(c2.body.location,c1.body.location).normalized
+                 if c1.location.distance_to(c2.location) < c1.radius + c2.radius:
+                     v = geo2d.geometry.Vector(c2.location,c1.location).normalized
                      c1.on_collision(-v,c2)
                      c2.on_collision( v,c1)
             self.world_view.on_tick()
