@@ -155,7 +155,7 @@ class Pit(PhysicalObject):
 
 class World:
     height = 100
-    width  = 250
+    width  = 200
     def __init__(self):
         self.critters = []
         self.world_view = WorldView(self,5)
