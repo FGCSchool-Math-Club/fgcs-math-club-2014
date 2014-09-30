@@ -39,10 +39,10 @@ class PhysicalObject:
                 canvas.delete(self.tk_id)
                 self.tk_id = None
 
-class Critter:
+class Critter(PhysicalObject):
     def __init__(self,world,brain_class,name):
+        PhysicalObject.__init__(self,world,None)
         self.name  = name
-        self.world = world
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,1.0]+profile+list(reversed(profile))
