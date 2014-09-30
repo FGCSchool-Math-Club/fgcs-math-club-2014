@@ -46,26 +46,33 @@ class Critter(PhysicalObject):
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,1.0]+profile+list(reversed(profile))
-        self.radius = 5
+        self.size = 25
         self.tk_id = None
         self.brain = brain_class()
+        self.dead = False
         world.spawn(self)
     def dump_status(self):
         print(self.name)
         self.brain.dump_status()
         print(self.location)
     def on_tick(self):
-        self.act(self.brain.on_tick(self.senses()))
-        self.location.translate(self.heading.x,self.heading.y)
-        self.location = self.world.wrap(self.location)
-        self.act("Eat")
+        if not self.dead:
+            self.act(self.brain.on_tick(self.senses()))
+            self.location.translate(self.heading.x,self.heading.y)
+            self.location = self.world.wrap(self.location)
+            self.act("Eat")
     def on_collision(self,dir,other):
-        self.radius  *= 0.9
-        self.heading -= dir
-        self.act(self.brain.on_collision(dir,other,self.senses()))
+        if isinstance(other,Food):
+            self.act("Eat")
+        else:
+            self.size  *= 0.9
+            self.heading -= dir
+            self.act(self.brain.on_collision(dir,other,self.senses()))
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
+    def die(self):
+        self.dead = True
     def act(self,cmd):
         if not cmd is None:
             word = cmd.split()
@@ -79,11 +86,13 @@ class Critter(PhysicalObject):
                 pass
             elif word[0] == "Eat":
                 for f in self.world.food:
-                    if f.value > 0 and self.location.distance_to(f.location) < self.radius:
+                    if f.value > 0 and self.location.distance_to(f.location) < self.radius():
                         f.value -= 1
-                        self.radius = math.sqrt(self.radius**2+1)
+                        self.size += 1
             else:
                 print("Unknown command: {}".format(cmd))
+    def radius(self):
+        return math.sqrt(self.size)
     def senses(self):
         return {
             'sight':   set(), # return set tuples: (color,distance,direction,width,change)
@@ -92,16 +101,22 @@ class Critter(PhysicalObject):
             'compass': self.heading,
           }
     def draw(self, canvas,s):
-        r    = self.radius
-        loc  = self.location
-        phi  = self.heading.phi
-        q    = 2*math.pi/len(self.shape)
-        outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
-        if self.tk_id is None:
-            self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
-            self.tk_text_id = canvas.create_text(50,50, text=self.name)
-        canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
-        canvas.coords(self.tk_id,      *outline)
+        if not self.dead:
+            r    = self.radius()
+            loc  = self.location
+            phi  = self.heading.phi
+            q    = 2*math.pi/len(self.shape)
+            outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
+            if self.tk_id is None:
+                self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
+                self.tk_text_id = canvas.create_text(50,50, text=self.name)
+            canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
+            canvas.coords(self.tk_id,      *outline)
+        elif self.tk_id:
+            canvas.delete(self.tk_id)
+            self.tk_id = None
+            canvas.delete(self.tk_text_id)
+            self.tk_text_id = None
 
 class CritterBrain:
     def dump_status(self):
@@ -122,10 +137,21 @@ class Food(PhysicalObject):
         # Could spoil, spread, or...?
         pass
     def on_collision(self,dir,other):
-        self.radius  *= 0.9
-        self.heading -= dir
+        pass
     def radius(self):
         return math.sqrt(self.value)
+
+class Pit(PhysicalObject):
+    def __init__(self,world,loc):
+        PhysicalObject.__init__(self,world,loc)
+        self.r = 10
+        self.color = {"fill": "dark red", "outline": "red"}
+    def on_tick(self):
+        pass
+    def on_collision(self,dir,other):
+        other.die()
+    def radius(self):
+        return self.r
 
 class World:
     height = 100
@@ -134,6 +160,7 @@ class World:
         self.critters = []
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
+        self.pits = [Pit(self,self.random_location())]
     def random_location(self):
         return Location(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -143,7 +170,7 @@ class World:
         for c in self.critters:
              c.dump_status()
     def display_objects(self):
-        return self.critters + self.food
+        return self.critters + self.food + self.pits
     def run(self):
         while self.world_view.window_open:
             shuffle(self.critters)
@@ -152,11 +179,14 @@ class World:
                     self.food.remove(f)
             for c in self.critters:
                  c.on_tick()
-            for c1,c2 in itertools.combinations(self.critters,2):
-                 if c1.location.distance_to(c2.location) < c1.radius + c2.radius:
-                     v = geo2d.geometry.Vector(c2.location,c1.location).normalized
-                     c1.on_collision(-v,c2)
-                     c2.on_collision( v,c1)
+            others = set(self.display_objects())
+            for c in self.critters:
+                others.remove(c)
+                for o in others:
+                    if c.location.distance_to(o.location) < c.radius() + o.radius():
+                        v = geo2d.geometry.Vector(o.location,c.location).normalized
+                        c.on_collision(-v,o)
+                        o.on_collision( v,c)
             self.world_view.on_tick()
             time.sleep(0.1)
     def wrap(self,p):
