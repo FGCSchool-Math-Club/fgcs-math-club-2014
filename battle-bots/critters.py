@@ -12,16 +12,22 @@ Location = geo2d.geometry.Point
 def Heading(dir):
     return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
 
-class PhysicalObject:
+class DisplayObject:
     def __init__(self,world,loc):
         self.world = world
         self.location = loc
+    def on_tick(self):
+        pass
+    def draw(self, canvas,s):
+        pass
+
+class PhysicalObject(DisplayObject):
+    def __init__(self,world,loc):
+        DisplayObject.__init__(self,world,loc)
         self.tk_id = None
         self.color = {"fill": "black"}
     def dump_status(self):
         print(self.location)
-    def on_tick(self):
-        pass
     def on_collision(self,dir,other):
         pass
     def radius(self):
@@ -161,6 +167,7 @@ class World:
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
         self.pits = [Pit(self,self.random_location())]
+        self.sounds = []
     def random_location(self):
         return Location(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -169,8 +176,10 @@ class World:
     def dump_status(self):
         for c in self.critters:
              c.dump_status()
-    def display_objects(self):
+    def physical_objects(self):
         return self.critters + self.food + self.pits
+    def display_objects(self):
+        return self.physical_objects() + self.sounds
     def run(self):
         while self.world_view.window_open:
             shuffle(self.critters)
@@ -179,7 +188,7 @@ class World:
                     self.food.remove(f)
             for c in self.critters:
                  c.on_tick()
-            others = set(self.display_objects())
+            others = set(self.physical_objects())
             for c in self.critters:
                 others.remove(c)
                 for o in others:
