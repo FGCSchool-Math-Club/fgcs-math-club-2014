@@ -58,6 +58,7 @@ class Critter:
         self.act(self.brain.on_tick(self.senses()))
         self.location.translate(self.heading.x,self.heading.y)
         self.location = self.world.wrap(self.location)
+        self.act("Eat")
     def on_collision(self,dir,other):
         self.radius  *= 0.9
         self.heading -= dir
@@ -77,7 +78,10 @@ class Critter:
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
-                pass
+                for f in self.world.food:
+                    if f.value > 0 and self.location.distance_to(f.location) < self.radius:
+                        f.value -= 1
+                        self.radius = math.sqrt(self.radius**2+1)
             else:
                 print("Unknown command: {}".format(cmd))
     def senses(self):
@@ -148,10 +152,6 @@ class World:
                     self.food.remove(f)
             for c in self.critters:
                  c.on_tick()
-                 for f in self.food:
-                     if f.value > 0 and c.location.distance_to(f.location) < c.radius:
-                         f.value -= 1
-                         c.radius = math.sqrt(c.radius**2+1)
             for c1,c2 in itertools.combinations(self.critters,2):
                  if c1.location.distance_to(c2.location) < c1.radius + c2.radius:
                      v = geo2d.geometry.Vector(c2.location,c1.location).normalized
