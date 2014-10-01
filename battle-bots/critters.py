@@ -8,6 +8,12 @@ import time
 def random_color():
     return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
 
+def as_color(r,g,b):
+    return "#%02x%02x%02x" % (255*r,255*g,255*b)
+
+def gray(x):
+    return as_color(x,x,x)
+
 Location = geo2d.geometry.Point
 def Heading(dir):
     return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
@@ -20,6 +26,41 @@ class DisplayObject:
         pass
     def draw(self, canvas,s):
         pass
+    def displacement_to(self,other):
+        return geo2d.geometry.Vector(self.location,other.location)
+
+class Sound(DisplayObject):
+    def __init__(self,world,loc,volume,text):
+        DisplayObject.__init__(self,world,loc)
+        self.volume = volume
+        self.text   = text
+        self.tk_id  = None
+        self.age    = 1
+        self.faded  = False
+    def on_tick(self):
+        self.age += 1
+    def stipple(self):
+        r = (self.age*100)/self.volume
+        if   r < 12: return 'gray12'
+        elif r < 25: return 'gray25'
+        elif r < 50: return 'gray50'
+        elif r < 75: return 'gray75'
+        else:        return 'gray75' #None
+    def draw(self, canvas, s):
+        if self.tk_id:
+            canvas.delete(self.tk_id)
+            self.tk_id = None    
+        if self.age < self.volume:
+            loc  = self.location
+            self.tk_id = canvas.create_text(
+                s*loc.x, s*loc.y,
+                text=self.text,
+                font=('Helvetica',int(s*((self.volume+self.age)/10)**2)),
+                fill=gray(self.age*1.0/self.volume),
+                stipple=self.stipple()
+                )
+        else:
+            self.faded = True
 
 class PhysicalObject(DisplayObject):
     def __init__(self,world,loc):
@@ -71,6 +112,7 @@ class Critter(PhysicalObject):
         if isinstance(other,Food):
             self.act("Eat")
         else:
+            self.say("Ooof!")
             self.size  *= 0.9
             self.heading -= dir
             self.act(self.brain.on_collision(dir,other,self.senses()))
@@ -78,7 +120,12 @@ class Critter(PhysicalObject):
         self.world    = world
         self.location = loc
     def die(self):
-        self.dead = True
+        if not self.dead:
+            self.say("Aaaaaaaaa...!",volume=20)
+            self.dead = True
+    def say(self,msg,volume=10):
+        if not self.dead:
+            self.world.sound(self.location,volume,msg)
     def act(self,cmd):
         if not cmd is None:
             word = cmd.split()
@@ -93,6 +140,7 @@ class Critter(PhysicalObject):
             elif word[0] == "Eat":
                 for f in self.world.food:
                     if f.value > 0 and self.location.distance_to(f.location) < self.radius():
+                        self.say("Yum")
                         f.value -= 1
                         self.size += 1
             else:
@@ -101,8 +149,9 @@ class Critter(PhysicalObject):
         return math.sqrt(self.size)
     def senses(self):
         return {
-            'sight':   set(), # return set tuples: (color,distance,direction,width,change)
-            'smell':   set(), # return set tuples: (strength,smell,change)
+            'sight':   set(), # return set of tuples: (color,distance,direction,width,change)
+            'smell':   set(), # return set of tuples: (strength,smell,change)
+            'hearing': set([(s.text,self.displacement_to(s).phi,s.age) for s in self.world.sounds]),
             'gps':     self.location,
             'compass': self.heading,
           }
@@ -151,10 +200,11 @@ class Pit(PhysicalObject):
     def __init__(self,world,loc):
         PhysicalObject.__init__(self,world,loc)
         self.r = 10
-        self.color = {"fill": "dark red", "outline": "red"}
+        self.color = {"fill": "black", "outline": "dark red"}
     def on_tick(self):
         pass
     def on_collision(self,dir,other):
+        other.location = self.location
         other.die()
     def radius(self):
         return self.r
@@ -180,20 +230,23 @@ class World:
         return self.critters + self.food + self.pits
     def display_objects(self):
         return self.physical_objects() + self.sounds
+    def sound(self,loc,volume,text):
+        self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
         while self.world_view.window_open:
+            self.sounds = [s for s in self.sounds if not s.faded]
             shuffle(self.critters)
             for f in self.food:
                 if f.value <= 0:
                     self.food.remove(f)
-            for c in self.critters:
-                 c.on_tick()
+            for c in self.display_objects():
+                c.on_tick()
             others = set(self.physical_objects())
             for c in self.critters:
                 others.remove(c)
                 for o in others:
                     if c.location.distance_to(o.location) < c.radius() + o.radius():
-                        v = geo2d.geometry.Vector(o.location,c.location).normalized
+                        v = o.displacement_to(c).normalized
                         c.on_collision(-v,o)
                         o.on_collision( v,c)
             self.world_view.on_tick()
