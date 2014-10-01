@@ -1,4 +1,7 @@
+Users.initial = "Q"
+
 class WanderBrain(CritterBrain):
+    code = "w"
     def on_collision(self,dir,other,senses):
         pass
     def on_attack(self,dir,attacker,senses):
@@ -9,6 +12,7 @@ class WanderBrain(CritterBrain):
 Brains.register(WanderBrain)
 
 class ZigBrain(CritterBrain):
+    code = "z"
     def on_collision(self,dir,other,senses):
         pass
     def on_attack(self,dir,attacker,senses):

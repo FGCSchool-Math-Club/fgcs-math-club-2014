@@ -89,6 +89,8 @@ class PhysicalObject(DisplayObject):
 class Critter(PhysicalObject):
     def __init__(self,world,brain_class,name):
         PhysicalObject.__init__(self,world,None)
+        if isinstance(name,int):
+            name = brain_class.owner + brain_class.code + str(name)
         self.name  = name
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
@@ -174,6 +176,8 @@ class Critter(PhysicalObject):
             self.tk_text_id = None
 
 class CritterBrain:
+    code  = ''
+    owner = None
     def dump_status(self):
         pass
     def on_collision(self,dir,other,senses):
@@ -290,9 +294,13 @@ class WorldView:
 class Users:
     registered = []
     current = None
+    initial = None
     def register(name):
         Users.registered.append(name)
         Users.current = name
+        Users.initial = name[0:1]
+    def initial(ch):
+        Users.initial = ch
 
 class Brains:
     registered = {}
@@ -303,6 +311,7 @@ class Brains:
             Brains.registered[u] = []
         Brains.registered[u].append(brain_class)
         Brains.available.append(brain_class)
+        brain_class.owner = Users.initial
 
 import glob,re
 for file in glob.glob("*_brains.py"):
@@ -312,5 +321,5 @@ for file in glob.glob("*_brains.py"):
         exec(open(file, "r").read())
 
 w = World()
-[Critter(w,choice(Brains.available),"c{}".format(i)) for i in range(1,10)]
+[Critter(w,choice(Brains.available),i) for i in range(1,10)]
 w.run()
