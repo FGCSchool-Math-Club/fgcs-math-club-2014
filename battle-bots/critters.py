@@ -149,13 +149,17 @@ class Critter(PhysicalObject):
                 print("Unknown command: {}".format(cmd))
     def radius(self):
         return math.sqrt(self.size)
+    def relative_heading(self,x):
+        return (x-self.heading.phi+math.pi) % 2*math.pi + math.pi
+    def relative_heading_to(self,x):
+        return self.relative_heading(self.displacement_to(x).phi)
     def senses(self):
         return {
-            'sight':   set(), # return set of tuples: (color,distance,direction,width,change)
-            'smell':   set(), # return set of tuples: (strength,smell,change)
-            'hearing': set([(s.text,self.displacement_to(s).phi,s.age) for s in self.world.sounds]),
+            'sight':   set(), # set of tuples: (color,distance,direction,width,change)
+            'smell':   set(), # set of tuples: (strength,smell,change)
+            'hearing': set([(s.text,self.relative_heading_to(s),s.age) for s in self.world.sounds]),
             'gps':     self.location,
-            'compass': self.heading,
+            'compass': self.heading.phi,
           }
     def draw(self, canvas,s):
         if not self.dead:
