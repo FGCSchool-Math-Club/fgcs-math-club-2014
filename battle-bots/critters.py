@@ -263,7 +263,7 @@ class WorldView:
         self.world = world
         self.scale = scale
         self.tk = Tk()
-        self.tk.title("Battle bots")
+        self.tk.title("Critters")
         self.tk.resizable(0, 0)
         self.tk.wm_attributes("-topmost", 1)
         self.canvas_height = scale*world.height
