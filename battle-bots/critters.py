@@ -206,6 +206,8 @@ class Food(PhysicalObject):
 class Pit(PhysicalObject):
     def __init__(self,world,loc):
         PhysicalObject.__init__(self,world,loc)
+        print("Pit at ",self.location)
+        #world.sound(self.location,5,"Aaha!")
         self.r = 10
         self.color = {"fill": "black", "outline": "dark red"}
     def on_tick(self):
