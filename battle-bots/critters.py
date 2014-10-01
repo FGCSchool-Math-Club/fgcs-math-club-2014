@@ -1,6 +1,6 @@
 from random import *
 import math
-import geo2d.geometry
+from geo2d.geometry import *
 import itertools
 from tkinter import *
 import time
@@ -14,9 +14,8 @@ def as_color(r,g,b):
 def gray(x):
     return as_color(x,x,x)
 
-Location = geo2d.geometry.Point
 def Heading(dir):
-    return geo2d.geometry.Vector(1.0,dir,coordinates="polar")
+    return Vector(1.0,dir,coordinates="polar")
 
 class DisplayObject:
     def __init__(self,world,loc):
@@ -27,7 +26,7 @@ class DisplayObject:
     def draw(self, canvas,s):
         pass
     def displacement_to(self,other):
-        return geo2d.geometry.Vector(self.location,other.location)
+        return Vector(self.location,other.location)
 
 class Sound(DisplayObject):
     def __init__(self,world,loc,volume,text):
@@ -227,7 +226,7 @@ class World:
         self.pits = [Pit(self,self.random_location())]
         self.sounds = []
     def random_location(self):
-        return Location(randrange(0,self.width),randrange(0,self.height))
+        return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
         self.critters.append(critter)
         critter.teleport_to(self,self.random_location())
