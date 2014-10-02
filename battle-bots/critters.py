@@ -170,13 +170,23 @@ class Critter(PhysicalObject):
             if self.tk_id is None:
                 self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
                 self.tk_text_id = canvas.create_text(50,50, text=self.name)
+                self.tk_eye_id   = canvas.create_oval(50, 50, s, s, fill = "white")
+                self.tk_pupil_id = canvas.create_oval(50, 50, s, s, fill = "black", outline="blue")
             canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
             canvas.coords(self.tk_id,      *outline)
+            x,y = outline[0:2]
+            pp = self.displacement_to(self.world.pits[0]).normalized
+            canvas.coords(self.tk_eye_id,   x         -s, y         -s, x         +s, y          +s)
+            canvas.coords(self.tk_pupil_id, x+s*pp.x/2-1, y+s*pp.y/2-1, x+s*pp.x/2+1, y+s*pp.y/2+1)
         elif self.tk_id:
             canvas.delete(self.tk_id)
             self.tk_id = None
             canvas.delete(self.tk_text_id)
             self.tk_text_id = None
+            canvas.delete(self.tk_eye_id)
+            self.tk_eye_id = None
+            canvas.delete(self.tk_pupil_id)
+            self.tk_pupil_id = None
 
 class CritterBrain:
     code  = ''
