@@ -26,7 +26,7 @@ class DisplayObject:
     def draw(self, canvas,s):
         pass
     def displacement_to(self,other):
-        return Vector(self.location,other.location)
+        return self.world.wrap(Vector(self.location,other.location))
 
 class Sound(DisplayObject):
     def __init__(self,world,loc,volume,text):
@@ -261,7 +261,11 @@ class World:
             self.world_view.on_tick()
             time.sleep(0.1)
     def wrap(self,p):
-        return Location(p.x % self.width,p.y % self.height)
+        h = self.height
+        w = self.width
+        if isinstance(p,Point):  return Point(p.x % w,p.y % h)
+        if isinstance(p,Vector): return Vector((p.x+w/2) % w - w/2,(p.y+h/2) % h - h/2)
+        return p
 
 class WorldView:
     def __init__(self,world,scale):
