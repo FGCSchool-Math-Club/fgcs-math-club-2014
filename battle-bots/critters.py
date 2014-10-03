@@ -27,7 +27,8 @@ class DisplayObject:
     def draw(self, canvas,s):
         pass
     def displacement_to(self,other):
-        return self.world.wrap(Vector(self.location,other.location))
+        loc = other.location if hasattr(other, "location") else other
+        return self.world.wrap(Vector(self.location,loc))
 
 class Sound(DisplayObject):
     def __init__(self,world,loc,volume,text):
@@ -198,7 +199,7 @@ class Critter(PhysicalObject):
             canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
             canvas.coords(self.tk_id,      *outline)
             x,y = outline[0:2]
-            pp = self.displacement_to(self.world.pits[0]).normalized
+            pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
             canvas.coords(self.tk_eye_id,   x         -s, y         -s, x         +s, y          +s)
             canvas.coords(self.tk_pupil_id, x+s*pp.x/2-1, y+s*pp.y/2-1, x+s*pp.x/2+1, y+s*pp.y/2+1)
         elif self.tk_id:
@@ -259,7 +260,7 @@ class World:
         self.critters = []
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
-        self.pits = [Pit(self,self.random_location())]
+        self.pits = [] #[Pit(self,self.random_location())]
         self.sounds = []
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
