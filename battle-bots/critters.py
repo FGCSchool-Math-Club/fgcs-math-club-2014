@@ -114,7 +114,7 @@ class Critter(PhysicalObject):
             self.act("Eat")
     def on_collision(self,dir,other):
         if isinstance(other,Food):
-            self.act("Eat")
+            self.act(self.brain.on_collision(dir,other,self.senses()) or "Eat")
         else:
             self.say("Ooof!")
             self.size  *= 0.98
