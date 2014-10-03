@@ -95,7 +95,7 @@ class Critter(PhysicalObject):
         self.name  = name
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
-        self.shape   = [1.0,1.0]+profile+list(reversed(profile))
+        self.shape   = [1.0,1.0,1.0]+profile+list(reversed(profile))
         self.size = 25
         self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
         self.tk_id = None
@@ -201,7 +201,7 @@ class Critter(PhysicalObject):
                 self.tk_pupil_id = canvas.create_oval(50, 50, s, s, fill = "black", outline="blue")
             canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
             canvas.coords(self.tk_id,      *outline)
-            x,y = outline[0:2]
+            x,y = outline[2],outline[3]
             pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
             canvas.coords(self.tk_eye_id,   x         -s, y         -s, x         +s, y          +s)
             canvas.coords(self.tk_pupil_id, x+s*pp.x/2-1, y+s*pp.y/2-1, x+s*pp.x/2+1, y+s*pp.y/2+1)
@@ -231,7 +231,7 @@ class Food(PhysicalObject):
     def __init__(self,world,loc,value):
         PhysicalObject.__init__(self,world,loc)
         self.value = value
-        self.color = {"fill": "dark green", "outline": "green"}
+        self.color = {"fill": "dark green", "outline": "green", "width":3}
     def on_tick(self):
         # Could spoil, spread, or...?
         pass
