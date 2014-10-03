@@ -17,7 +17,7 @@ class IntervalSet:
     def commensurable_with(self,other):
         return type(self) == type(other)
     def inverse(self):
-        return IntervalSet(*self.inflections,neg_inf=(not self.neg_inf))
+        return type(self)(*self.inflections,neg_inf=(not self.neg_inf))
     def intersection(*sets):
         return sets[0].meld(sets,len(sets),len(sets))
     def union(*sets):
@@ -45,20 +45,12 @@ class IntervalSet:
                 index[s] += 1
                 if index[s] >= len(s.inflections): del index[s]
         return type(sets[0])(*inflections,neg_inf=neg_inf)
+    def ranges(self):
+        xs = [float("-inf")]+list(self.inflections) if self.neg_inf else list(self.inflections)
+        if odd(len(xs)): xs.append(float("inf"))
+        return [(xs[i],xs[i+1]) for i in range(0, len(xs), 2)]
     def __str__(self):
-        if self.neg_inf:
-            s = '..'
-            o = 1
-        else:
-            s = ''
-            o = 0
-        i = 0
-        n = len(self.inflections)
-        while i < n:
-            s = s + ("%s" % self.inflections[i])
-            s = s + ('..' if not odd(i+o) else ', ' if i+1 < n else '')
-            i += 1
-        return "{"+s+"}"
+        return "{"+", ".join("{}..{}".format(l,h).replace('-inf','').replace('inf','') for l,h in self.ranges())+"}"
     __repr__ = __str__
         
 x = IntervalSet(5,15,neg_inf=True)
