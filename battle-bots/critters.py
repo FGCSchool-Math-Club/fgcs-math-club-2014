@@ -282,6 +282,7 @@ class World:
     def run(self):
         while self.world_view.window_open:
             self.sounds = [s for s in self.sounds if not s.faded]
+            self.food   = [f for f in self.food if f.value > 0]
             shuffle(self.critters)
             for f in self.food:
                 if f.value <= 0:
