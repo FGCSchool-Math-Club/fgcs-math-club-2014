@@ -4,6 +4,7 @@ from geo2d.geometry import *
 import itertools
 from tkinter import *
 import time
+from intervalset import AngularIntervalSet
 
 def random_color():
     return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
@@ -154,12 +155,34 @@ class Critter(PhysicalObject):
         return self.relative_heading(self.displacement_to(x).phi)
     def senses(self):
         return {
-            'sight':   set(), # set of tuples: (color,distance,direction,width,change)
+            'sight':   self.sight(), # set of tuples: (color,distance,direction,width,change)
             'smell':   set(), # set of tuples: (strength,smell,change)
             'hearing': set([(s.text,self.relative_heading_to(s),s.age) for s in self.world.sounds]),
             'gps':     self.location,
             'compass': self.heading.phi,
           }
+    def sight(self):
+        objects = []
+        forward = self.heading.phi
+        for o in self.world.physical_objects():
+            if o != self:
+               d = self.displacement_to(o)
+               a = d.phi-forward
+               delta_a = math.atan2(o.radius(),d.rho)
+               objects.append((d.rho,uniform(0.0,1.0),AngularIntervalSet(a-delta_a,a+delta_a),o))
+        # Two radian field of view
+        sights = set()
+        view_mask = AngularIntervalSet(-1,+1)
+        for dist,rand,image,obj in sorted(objects):
+             # we see all of the object not blocked by something closer
+             visable_part = view_mask.intersection(image)
+             # the object blocks things that are further
+             view_mask    = view_mask.intersection(image.inverse())
+             for segment in visable_part.ranges():
+                 sights.add((obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
+        # TODO: limit sight to horizon-circle (e.g. 1/5 (h x w) elipse)
+        # TODO: figure out how to calculate change
+        return sights
     def draw(self, canvas,s):
         if not self.dead:
             r    = self.radius()
