@@ -116,7 +116,7 @@ class Critter(PhysicalObject):
             self.act("Eat")
         else:
             self.say("Ooof!")
-            self.size  *= 0.9
+            self.size  *= 0.98
             self.heading -= dir
             self.act(self.brain.on_collision(dir,other,self.senses()))
     def teleport_to(self,world,loc):
