@@ -28,7 +28,7 @@ class IntervalSet:
         neg_inf = l <= depth <= h
         #print(neg_inf,l,depth,h)
         inflections = []
-        index = {s:0 for s in sets}
+        index = {s:0 for s in sets if len(s.inflections) > 0}
         state = neg_inf
         # cycle through sets, producing a result set for all points
         # at which l <= depth <= h
