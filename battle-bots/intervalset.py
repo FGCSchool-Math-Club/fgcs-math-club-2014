@@ -14,6 +14,8 @@ class IntervalSet:
         while i < len(self.inflections) and probe >= self.inflections[i]:
             i = i + 1
         return i
+    def commensurable_with(self,other):
+        return type(self) == type(other)
     def inverse(self):
         return IntervalSet(*self.inflections,neg_inf=(not self.neg_inf))
     def intersection(*sets):
@@ -21,6 +23,7 @@ class IntervalSet:
     def union(*sets):
         return sets[0].meld(sets,1,len(sets))
     def meld(self,sets,l,h):
+        assert all(s.commensurable_with(sets[0]) for s in sets)
         depth = len([s for s in sets if s.neg_inf])
         neg_inf = l <= depth <= h
         #print(neg_inf,l,depth,h)
@@ -41,7 +44,7 @@ class IntervalSet:
             for s in hits:
                 index[s] += 1
                 if index[s] >= len(s.inflections): del index[s]
-        return IntervalSet(*inflections,neg_inf=neg_inf)
+        return type(sets[0])(*inflections,neg_inf=neg_inf)
     def __str__(self):
         if self.neg_inf:
             s = '..'
@@ -72,19 +75,36 @@ assert str(IntervalSet(5,15,neg_inf=True).intersection(IntervalSet(10))) == "{15
 class ModuloIntervalSet(IntervalSet):
     low  = 0.0
     high = 1.0
-    def __init__(self,*inflections)
+    def __init__(self,*inflections,neg_inf=False):
         assert not odd(len(inflections)),"Modulo intervals must have an even number of inflections."
-        assert len(inflections) <= 2,"For now, modulo intervals can be initialized with at most 2 inflections."
-        assert len([i for i in inflections if not self.low <= i <= self.high]) == 0,"Inflection out of range."
         self.span = self.high - self.low
-        inflections = [((i-self.low) % self.high) + self.low for i in inflections]
-        self.neg_inf = len(inflections) == 2 and inflections[0] > inflections[1]
-        self.inflections = sorted(inflections)
-    # intercept meld and assert that all must be modulo sets with equal lows & highs?
-    # fix meld & inverse to produce a set of the same class.
+        if neg_inf or len(inflections) > 2:
+            assert all(self.low <= i <= self.high for i in inflections),"For now wrapping can only be done on a single pair of inflections "
+            IntervalSet.__init__(self,*inflections,neg_inf=neg_inf)
+        elif len(inflections) == 0:
+            IntervalSet.__init__(self)
+        else:
+            inflections = [self.wrap(i) for i in inflections]
+            IntervalSet.__init__(self,*sorted(inflections),neg_inf = inflections[0] > inflections[1])
+    def commensurable_with(self,other):
+        return IntervalSet.commensurable_with(self,other) and self.low == other.low and self.high == other.high
+    def contains(self,probe):
+        return IntervalSet.contains(self,self.wrap(probe))
+    def wrap(self,value):
+        return ((value-self.low) % self.span) + self.low
 
-class AnglularIntervalSet(ModuloIntervalSet):
-    low  = -math.pi
-    high =  math.pi
+from math import pi
+class AngularIntervalSet(ModuloIntervalSet):
+    low  = -pi
+    high =  pi
 
-# tests!
+x = AngularIntervalSet(1,5)
+assert str(x) == "{.."+str(5-2*pi)+", 1.0..}"  # e.g. {..-1.2831853071795862, 1.0..}
+assert str(x.inverse()) == "{"+str(5-2*pi)+"..1.0}"
+assert x.contains(-pi)
+assert x.contains(pi)
+assert not x.contains(2*pi)
+assert x.contains(3*pi)
+
+assert str(x.intersection(AngularIntervalSet(0,2))) == "{1.0..2.0}"
+assert str(x.intersection(AngularIntervalSet(-2,2))) == "{-2.0.."+str(5-2*pi)+", 1.0..2.0}"
