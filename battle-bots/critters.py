@@ -168,12 +168,15 @@ class Critter(PhysicalObject):
         for o in self.world.physical_objects():
             if o != self:
                d = self.displacement_to(o)
-               a = d.phi-forward
-               delta_a = math.atan2(o.radius(),d.rho)
-               objects.append((d.rho,uniform(0.0,1.0),AngularIntervalSet(a-delta_a,a+delta_a),o))
-        # Two radian field of view
-        sights = set()
+               # We can only see things above our horizon, which we aproximate be saying they have
+               #     to be within a quarter of the way around in either direction.
+               if (d.x/self.world.width)**2 + (d.y/self.world.height)**2 < (1/4)**2:
+                   a = d.phi-forward
+                   delta_a = math.atan2(o.radius(),d.rho)
+                   objects.append((d.rho,uniform(0.0,1.0),AngularIntervalSet(a-delta_a,a+delta_a),o))
+        # We can only see things within a two radian field of view
         view_mask = AngularIntervalSet(-1,+1)
+        sights = set()
         for dist,rand,image,obj in sorted(objects):
              # we see all of the object not blocked by something closer
              visable_part = view_mask.intersection(image)
@@ -181,7 +184,6 @@ class Critter(PhysicalObject):
              view_mask    = view_mask.intersection(image.inverse())
              for segment in visable_part.ranges():
                  sights.add((obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
-        # TODO: limit sight to horizon-circle (e.g. 1/5 (h x w) elipse)
         # TODO: figure out how to calculate change
         return sights
     def draw(self, canvas,s):
