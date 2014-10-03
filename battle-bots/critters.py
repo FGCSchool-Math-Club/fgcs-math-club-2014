@@ -97,6 +97,7 @@ class Critter(PhysicalObject):
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,1.0]+profile+list(reversed(profile))
         self.size = 25
+        self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
         self.tk_id = None
         self.brain = brain_class()
         self.dead = False
@@ -194,7 +195,7 @@ class Critter(PhysicalObject):
             q    = 2*math.pi/len(self.shape)
             outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
             if self.tk_id is None:
-                self.tk_id = canvas.create_polygon(*outline, fill=random_color(), smooth=1, stipple='gray50')
+                self.tk_id = canvas.create_polygon(*outline, **self.color)
                 self.tk_text_id = canvas.create_text(50,50, text=self.name)
                 self.tk_eye_id   = canvas.create_oval(50, 50, s, s, fill = "white")
                 self.tk_pupil_id = canvas.create_oval(50, 50, s, s, fill = "black", outline="blue")
