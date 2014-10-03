@@ -143,8 +143,8 @@ class Critter(PhysicalObject):
                 for f in self.world.food:
                     if f.value > 0 and self.location.distance_to(f.location) < self.radius():
                         self.say("Yum")
-                        f.value -= 1
-                        self.size += 1
+                        f.value -= 0.1
+                        self.size += 0.1
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
@@ -234,6 +234,7 @@ class Food(PhysicalObject):
     def on_collision(self,dir,other):
         pass
     def radius(self):
+        if self.value < 0: self.value = 0
         return math.sqrt(self.value)
 
 class Pit(PhysicalObject):
