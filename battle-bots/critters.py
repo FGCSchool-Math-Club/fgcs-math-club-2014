@@ -266,7 +266,7 @@ class World:
     def __init__(self):
         self.critters = []
         self.world_view = WorldView(self,5)
-        self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
+        self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,250)]
         self.pits = [] #[Pit(self,self.random_location())]
         self.sounds = []
         self.clock = 0
