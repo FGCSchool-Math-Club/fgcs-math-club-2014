@@ -265,6 +265,7 @@ class World:
         self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,50)]
         self.pits = [] #[Pit(self,self.random_location())]
         self.sounds = []
+        self.clock = 0
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -281,6 +282,7 @@ class World:
         self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
         while self.world_view.window_open:
+            self.clock += 1
             self.sounds = [s for s in self.sounds if not s.faded]
             self.food   = [f for f in self.food if f.value > 0]
             shuffle(self.critters)
