@@ -151,6 +151,7 @@ class Critter(PhysicalObject):
                         self.say("Yum")
                         f.value -= 0.1
                         self.size += 0.1
+                        break
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
