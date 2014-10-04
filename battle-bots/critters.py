@@ -146,7 +146,7 @@ class Critter(PhysicalObject):
                 pass
             elif word[0] == "Eat":
                 for f in self.world.food:
-                    if f.value > 0 and self.location.distance_to(f.location) < self.radius():
+                    if f.value > 0 and self.location.distance_to(f.location) < self.radius() + f.radius():
                         self.say("Yum")
                         f.value -= 0.1
                         self.size += 0.1
