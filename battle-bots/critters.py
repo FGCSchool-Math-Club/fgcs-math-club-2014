@@ -146,8 +146,8 @@ class Critter(PhysicalObject):
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
-                for f in self.world.food:
-                    if f.value > 0 and self.location.distance_to(f.location) < self.radius() + f.radius():
+                for f in self.world.neighbors[self]:
+                    if isinstance(f,Food) and f.value > 0 and self.location.distance_to(f.location) < self.radius() + f.radius():
                         self.say("Yum")
                         f.value -= 0.1
                         self.size += 0.1
@@ -170,7 +170,7 @@ class Critter(PhysicalObject):
     def sight(self):
         objects = []
         forward = self.heading.phi
-        for o in self.world.physical_objects():
+        for o in self.world.neighbors[self]:
             if o != self:
                d = self.displacement_to(o)
                # We can only see things above our horizon, which we aproximate be saying they have
@@ -274,6 +274,7 @@ class World:
         self.pits = [] #[Pit(self,self.random_location())]
         self.sounds = []
         self.clock = 0
+        self.neighbors = None
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -289,7 +290,17 @@ class World:
     def sound(self,loc,volume,text):
         self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
+        neighborhood_radius = min(self.height,self.width)/2
         while self.world_view.window_open:
+            if self.clock % 10 == 0 or not self.neighbors:
+                self.neighbors = {}
+                for c in self.critters:
+                    self.neighbors[c] = set()
+                    others = set(self.physical_objects())
+                    others.remove(c)
+                    for o in others:
+                        if c.location.distance_to(o.location) < neighborhood_radius:
+                            self.neighbors[c].add(o)
             self.clock += 1
             self.sounds = [s for s in self.sounds if not s.faded]
             self.food   = [f for f in self.food if f.value > 0]
@@ -299,10 +310,8 @@ class World:
                     self.food.remove(f)
             for c in self.display_objects():
                 c.on_tick()
-            others = set(self.physical_objects())
             for c in self.critters:
-                others.remove(c)
-                for o in others:
+                for o in self.neighbors[c]:
                     if c.location.distance_to(o.location) < c.radius() + o.radius():
                         v = o.displacement_to(c).normalized
                         c.on_collision(-v,o)
