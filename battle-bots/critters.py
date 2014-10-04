@@ -109,6 +109,7 @@ class Critter(PhysicalObject):
         print(self.location)
     def on_tick(self):
         if not self.dead:
+            self.size *= 0.995
             self.act(self.brain.on_tick(self.senses()))
             self.location.translate(self.heading.x,self.heading.y)
             self.location = self.world.wrap(self.location)
