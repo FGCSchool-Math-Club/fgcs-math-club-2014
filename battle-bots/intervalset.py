@@ -18,6 +18,8 @@ class IntervalSet:
         return type(self) == type(other)
     def inverse(self):
         return type(self)(*self.inflections,neg_inf=(not self.neg_inf))
+    def trivial(self):
+        return len(self.inflections) == 0
     def intersection(*sets):
         return sets[0].meld(sets,len(sets),len(sets))
     def union(*sets):

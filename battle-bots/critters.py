@@ -176,9 +176,11 @@ class Critter(PhysicalObject):
                # We can only see things above our horizon, which we aproximate be saying they have
                #     to be within a quarter of the way around in either direction.
                if (d.x/self.world.width)**2 + (d.y/self.world.height)**2 < (1/4)**2:
-                   a = d.phi-forward
+                   # We can only see things in front of us
+                   a = (d.phi-forward+math.pi) % (2*math.pi) - math.pi
                    delta_a = math.atan2(o.radius(),d.rho)
-                   objects.append((d.rho,uniform(0.0,1.0),AngularIntervalSet(a-delta_a,a+delta_a),o))
+                   if abs(a)-abs(delta_a) < 1:
+                       objects.append((d.rho,uniform(0.0,1.0),AngularIntervalSet(a-delta_a,a+delta_a),o))
         # We can only see things within a two radian field of view
         view_mask = AngularIntervalSet(-1,+1)
         sights = set()
@@ -189,6 +191,8 @@ class Critter(PhysicalObject):
              view_mask    = view_mask.intersection(image.inverse())
              for segment in visable_part.ranges():
                  sights.add((obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
+             # stop when our field of view is full
+             if view_mask.trivial(): break
         # TODO: figure out how to calculate change
         return sights
     def draw(self, canvas,s):
