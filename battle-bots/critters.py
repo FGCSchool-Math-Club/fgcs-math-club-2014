@@ -101,6 +101,7 @@ class Critter(PhysicalObject):
         self.tk_id = None
         self.brain = brain_class()
         self.dead = False
+        self.last_spoke = -10
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -129,7 +130,9 @@ class Critter(PhysicalObject):
             self.dead = True
     def say(self,msg,volume=10):
         if not self.dead:
-            self.world.sound(self.location,volume,msg)
+            if self.world.clock - self.last_spoke > 10:
+                self.world.sound(self.location,volume,msg)
+                self.last_spoke = self.world.clock
     def act(self,cmd):
         if not cmd is None:
             word = cmd.split()
