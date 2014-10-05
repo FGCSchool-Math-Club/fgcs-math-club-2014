@@ -103,6 +103,7 @@ class Critter(PhysicalObject):
         self.brain = brain_class()
         self.dead = False
         self.last_spoke = -10
+        self.sense_data = None
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -110,19 +111,20 @@ class Critter(PhysicalObject):
         print(self.location)
     def on_tick(self):
         if not self.dead:
+            self.sense_data = self.senses()
             self.size *= 0.995
-            self.act(self.brain.on_tick(self.senses()))
+            self.act(self.brain.on_tick(self.sense_data))
             self.location.translate(self.heading.x,self.heading.y)
             self.location = self.world.wrap(self.location)
             self.act("Eat")
     def on_collision(self,dir,other):
         if isinstance(other,Food):
-            self.act(self.brain.on_collision(dir,other,self.senses()) or "Eat")
+            self.act(self.brain.on_collision(dir,other,self.sense_data) or "Eat")
         else:
             self.say("Ooof!")
             self.size  *= 0.98
             self.heading -= dir
-            self.act(self.brain.on_collision(dir,other,self.senses()))
+            self.act(self.brain.on_collision(dir,other,self.sense_data))
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
