@@ -1,3 +1,4 @@
+import argparse
 from random import *
 import math
 from geo2d.geometry import *
@@ -268,7 +269,7 @@ class Pit(PhysicalObject):
 class World:
     height = 100
     width  = 200
-    def __init__(self):
+    def __init__(self,tick_time=0.1,tick_limit=-1):
         self.critters = []
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,250)]
@@ -276,6 +277,8 @@ class World:
         self.sounds = []
         self.clock = 0
         self.neighbors = None
+        self.tick_time = tick_time
+        self.tick_limit = tick_limit
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -292,7 +295,7 @@ class World:
         self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
         neighborhood_radius = min(self.height,self.width)/2
-        while self.world_view.window_open:
+        while self.world_view.window_open and self.clock != self.tick_limit:
             loop_start = time.time()
             if self.clock % 10 == 0 or not self.neighbors:
                 self.neighbors = {}
@@ -319,7 +322,7 @@ class World:
                         c.on_collision(-v,o)
                         o.on_collision( v,c)
             self.world_view.on_tick()
-            excess_time = 0.1-(time.time()-loop_start)
+            excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
                 time.sleep(excess_time)
             else:
@@ -386,6 +389,11 @@ class Brains:
         Brains.available.append(brain_class)
         brain_class.owner = Users.initial
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', default=0.1,  type=float)
+parser.add_argument('-n', default=-1, type=int)
+cmdline = parser.parse_args()
+
 import glob,re
 for file in glob.glob("*_brains.py"):
     match = re.search('^(.+)_brains.py$', file)
@@ -393,6 +401,6 @@ for file in glob.glob("*_brains.py"):
         Users.register(match.group(1))
         exec(open(file, "r").read())
 
-w = World()
+w = World(tick_time=cmdline.t,tick_limit=cmdline.n)
 [Critter(w,choice(Brains.available),i) for i in range(1,10)]
 w.run()
