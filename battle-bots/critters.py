@@ -176,6 +176,7 @@ class Critter(PhysicalObject):
             'sight':   self.sight(), # set of tuples: (color,distance,direction,width,change)
             'smell':   set(), # set of tuples: (strength,smell,change)
             'hearing': set([(s.text,self.relative_heading_to(s),s.age) for s in self.world.sounds]),
+            'taste':   set([type(x) for x in self.whats_under]),
             'gps':     self.location,
             'compass': self.heading.phi,
           }
