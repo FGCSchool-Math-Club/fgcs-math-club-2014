@@ -43,7 +43,7 @@ class Sound(DisplayObject):
     def on_tick(self):
         self.age += 1
     def stipple(self):
-        r = (self.age*100)/self.volume
+        r = 100-(self.age*100)/self.volume
         if   r < 12: return 'gray12'
         elif r < 25: return 'gray25'
         elif r < 50: return 'gray50'
@@ -56,10 +56,10 @@ class Sound(DisplayObject):
         if self.age < self.volume:
             loc  = self.location
             self.tk_id = canvas.create_text(
-                s*loc.x, s*loc.y,
+                s*loc.x, s*loc.y-20,
                 text=self.text,
                 font=('Helvetica',int(s*((self.volume+self.age)/10)**2)),
-                fill=gray(self.age*1.0/self.volume),
+                fill=gray(max(self.age/self.volume-0.2,0)),
                 stipple=self.stipple()
                 )
         else:
