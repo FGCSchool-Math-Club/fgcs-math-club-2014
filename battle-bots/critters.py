@@ -269,11 +269,11 @@ class Pit(PhysicalObject):
 class World:
     height = 100
     width  = 200
-    def __init__(self,tick_time=0.1,tick_limit=-1):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0):
         self.critters = []
         self.world_view = WorldView(self,5)
-        self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,250)]
-        self.pits = [] #[Pit(self,self.random_location())]
+        self.food = [Food(self,self.random_location(),randrange(2,8)) for i in range(0,food)]
+        self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
         self.sounds = []
         self.clock = 0
         self.neighbors = None
@@ -390,9 +390,11 @@ class Brains:
         brain_class.owner = Users.initial
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', default=0.1,  type=float)
-parser.add_argument('-n', default=-1, type=int)
-cmdline = parser.parse_args()
+parser.add_argument('-t', default=0.1, type=float)
+parser.add_argument('-n', default= -1, type=int)
+parser.add_argument('-f', default=100, type=int)
+parser.add_argument('-p', default=  0, type=int)
+cmd = parser.parse_args()
 
 import glob,re
 for file in glob.glob("*_brains.py"):
@@ -401,6 +403,6 @@ for file in glob.glob("*_brains.py"):
         Users.register(match.group(1))
         exec(open(file, "r").read())
 
-w = World(tick_time=cmdline.t,tick_limit=cmdline.n)
+w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p)
 [Critter(w,choice(Brains.available),i) for i in range(1,10)]
 w.run()
