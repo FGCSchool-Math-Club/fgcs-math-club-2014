@@ -6,6 +6,7 @@ import itertools
 from tkinter import *
 import time
 from intervalset import AngularIntervalSet
+import sys,traceback
 
 def random_color():
     return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
@@ -118,19 +119,19 @@ class Critter(PhysicalObject):
             self.sense_data = self.senses()
             self.size -= 0.1
             if self.size < 0: self.die
-            self.act(self.brain.on_tick(self.sense_data))
+            self.act(self.brain_on_tick())
             self.location.translate(self.heading.x,self.heading.y)
             self.location = self.world.wrap(self.location)
             self.act("Eat")
     def on_collision(self,dir,other):
         self.whats_under.add(other)
         if isinstance(other,Food):
-            self.act(self.brain.on_collision(dir,other,self.sense_data) or "Eat")
+            self.act(self.brain_on_collision(dir,other) or "Eat")
         else:
             self.say("Ooof!")
             self.size  *= 0.98
             self.heading -= dir
-            self.act(self.brain.on_collision(dir,other,self.sense_data))
+            self.act(self.brain_on_collision(dir,other))
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
@@ -235,6 +236,16 @@ class Critter(PhysicalObject):
             self.tk_eye_id = None
             canvas.delete(self.tk_pupil_id)
             self.tk_pupil_id = None
+    def brain_on_tick(self):
+        try:
+            return self.brain.on_tick(self.sense_data)
+        except Exception as e:
+            traceback.print_tb(sys.exc_info()[-1], limit=3)
+    def brain_on_collision(self,dir,other):
+        try:
+            return self.brain.on_collision(dir,other,self.sense_data)
+        except Exception as e:
+            traceback.print_tb(sys.exc_info()[-1], limit=3)
 
 class CritterBrain:
     code  = ''
