@@ -118,7 +118,7 @@ class Critter(PhysicalObject):
                     self.whats_under.remove(x)
             self.sense_data = self.senses()
             self.size -= 0.1
-            if self.size < 0: self.die
+            if self.size <= 0: self.die()
             self.act(self.brain_on_tick())
             self.location.translate(self.heading.x,self.heading.y)
             self.location = self.world.wrap(self.location)
@@ -165,7 +165,7 @@ class Critter(PhysicalObject):
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
-        return math.sqrt(self.size)
+        return math.sqrt(self.size) if self.size > 0 else 0
     def relative_heading(self,x):
         return (x-self.heading.phi+math.pi) % 2*math.pi + math.pi
     def relative_heading_to(self,x):
@@ -319,6 +319,11 @@ class World:
         neighborhood_radius = min(self.height,self.width)/2
         while self.world_view.window_open and self.clock != self.tick_limit:
             loop_start = time.time()
+            self.clock += 1
+            self.sounds   = [s for s in self.sounds if not s.faded]
+            self.food     = [f for f in self.food if f.value > 0]
+            self.critters = [c for c in self.critters if not c.dead] 
+            shuffle(self.critters)
             if self.clock % 10 == 0 or not self.neighbors:
                 self.neighbors = {}
                 for c in self.critters:
@@ -328,13 +333,6 @@ class World:
                     for o in others:
                         if c.distance_to(o) < neighborhood_radius:
                             self.neighbors[c].add(o)
-            self.clock += 1
-            self.sounds = [s for s in self.sounds if not s.faded]
-            self.food   = [f for f in self.food if f.value > 0]
-            shuffle(self.critters)
-            for f in self.food:
-                if f.value <= 0:
-                    self.food.remove(f)
             for c in self.display_objects():
                 c.on_tick()
             for c in self.critters:
