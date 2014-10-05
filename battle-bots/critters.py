@@ -293,6 +293,7 @@ class World:
     def run(self):
         neighborhood_radius = min(self.height,self.width)/2
         while self.world_view.window_open:
+            loop_start = time.time()
             if self.clock % 10 == 0 or not self.neighbors:
                 self.neighbors = {}
                 for c in self.critters:
@@ -318,7 +319,11 @@ class World:
                         c.on_collision(-v,o)
                         o.on_collision( v,c)
             self.world_view.on_tick()
-            time.sleep(0.1)
+            excess_time = 0.1-(time.time()-loop_start)
+            if excess_time > 0:
+                time.sleep(excess_time)
+            else:
+                print("Tick over time by ",-excess_time," seconds!")
     def wrap(self,p):
         h = self.height
         w = self.width
