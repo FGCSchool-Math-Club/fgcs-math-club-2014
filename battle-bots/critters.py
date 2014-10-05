@@ -104,6 +104,7 @@ class Critter(PhysicalObject):
         self.dead = False
         self.last_spoke = -10
         self.sense_data = None
+        self.whats_under = set()
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -111,6 +112,9 @@ class Critter(PhysicalObject):
         print(self.location)
     def on_tick(self):
         if not self.dead:
+            for x in list(self.whats_under):
+                if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
+                    self.whats_under.remove(x)
             self.sense_data = self.senses()
             self.size -= 0.1
             if self.size < 0: self.die
@@ -119,6 +123,7 @@ class Critter(PhysicalObject):
             self.location = self.world.wrap(self.location)
             self.act("Eat")
     def on_collision(self,dir,other):
+        self.whats_under.add(other)
         if isinstance(other,Food):
             self.act(self.brain.on_collision(dir,other,self.sense_data) or "Eat")
         else:
@@ -150,8 +155,8 @@ class Critter(PhysicalObject):
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
-                for f in self.world.neighbors[self]:
-                    if isinstance(f,Food) and f.value > 0 and self.location.distance_to(f.location) < self.radius() + f.radius():
+                for f in self.whats_under:
+                    if isinstance(f,Food) and f.value > 0:
                         self.say("Yum")
                         f.value -= 0.1
                         self.size += 0.1
@@ -164,6 +169,8 @@ class Critter(PhysicalObject):
         return (x-self.heading.phi+math.pi) % 2*math.pi + math.pi
     def relative_heading_to(self,x):
         return self.relative_heading(self.displacement_to(x).phi)
+    def distance_to(self,other):
+        return self.displacement_to(other).rho
     def senses(self):
         return {
             'sight':   self.sight(), # set of tuples: (color,distance,direction,width,change)
@@ -307,7 +314,7 @@ class World:
                     others = set(self.physical_objects())
                     others.remove(c)
                     for o in others:
-                        if c.location.distance_to(o.location) < neighborhood_radius:
+                        if c.distance_to(o) < neighborhood_radius:
                             self.neighbors[c].add(o)
             self.clock += 1
             self.sounds = [s for s in self.sounds if not s.faded]
@@ -320,7 +327,7 @@ class World:
                 c.on_tick()
             for c in self.critters:
                 for o in self.neighbors[c]:
-                    if c.location.distance_to(o.location) < c.radius() + o.radius():
+                    if c.distance_to(o) < c.radius() + o.radius():
                         v = o.displacement_to(c).normalized
                         c.on_collision(-v,o)
                         o.on_collision( v,c)
