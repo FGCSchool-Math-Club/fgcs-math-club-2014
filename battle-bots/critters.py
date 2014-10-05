@@ -406,5 +406,8 @@ for file in glob.glob("*_brains.py"):
         exec(open(file, "r").read())
 
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p)
-[Critter(w,choice(Brains.available),i) for i in range(1,10)]
+if True:
+    [Critter(w,b,1) for b in Brains.available]
+else:
+    [Critter(w,choice(Brains.available),i) for i in range(1,10)]
 w.run()
