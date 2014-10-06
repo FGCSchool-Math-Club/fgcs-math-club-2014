@@ -145,6 +145,7 @@ class Critter(PhysicalObject):
                 self.world.sound(self.location,volume,msg)
                 self.last_spoke = self.world.clock
     def act(self,cmd):
+        max_speed = 1.5
         if not cmd is None:
             word = cmd.split()
             if word[0] == "Stop":
@@ -153,6 +154,8 @@ class Critter(PhysicalObject):
                 self.heading = Heading(self.heading.phi+float(word[1]))
             elif word[0] == "Accelerate":
                 self.heading *= float(word[1])
+                if self.heading.rho > max_speed:
+                    self.heading *= max_speed/self.heading.rho
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
