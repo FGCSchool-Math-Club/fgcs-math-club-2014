@@ -412,8 +412,10 @@ class Brains:
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', default=0.1, type=float)
 parser.add_argument('-n', default= -1, type=int)
+parser.add_argument('-c', default= 10, type=int)
 parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
+
 cmd = parser.parse_args()
 
 import glob,re
@@ -425,7 +427,7 @@ for file in glob.glob("*_brains.py"):
 
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p)
 if True:
-    [Critter(w,b,1) for b in Brains.available]
+    [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c)]
 else:
-    [Critter(w,choice(Brains.available),i) for i in range(1,10)]
+    [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c)]
 w.run()
