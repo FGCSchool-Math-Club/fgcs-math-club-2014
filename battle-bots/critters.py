@@ -117,7 +117,7 @@ class Critter(PhysicalObject):
                 if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
                     self.whats_under.remove(x)
             self.sense_data = self.senses()
-            self.size -= 0.1
+            self.size -= 0.01 + 0.1*self.heading.rho
             if self.size <= 0: self.die()
             self.act(self.brain_on_tick())
             self.location.translate(self.heading.x,self.heading.y)
