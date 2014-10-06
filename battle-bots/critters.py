@@ -149,7 +149,9 @@ class Critter(PhysicalObject):
         if not cmd is None:
             word = cmd.split()
             if word[0] == "Stop":
-                self.heading /= 10000
+                self.heading = self.heading.normalized*(1/10000)
+            elif word[0] == "Go":
+                self.heading = self.heading.normalized
             elif word[0] == "Turn":
                 self.heading = Heading(self.heading.phi+float(word[1]))
             elif word[0] == "Accelerate":
