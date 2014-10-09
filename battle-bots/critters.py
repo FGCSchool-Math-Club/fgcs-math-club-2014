@@ -148,6 +148,7 @@ class Critter(PhysicalObject):
                 self.last_spoke = self.world.clock
     def act(self,cmd):
         max_speed = 1.5
+        sharpest_turn = 0.2
         if not cmd is None:
             word = cmd.split()
             if word[0] == "Stop":
@@ -155,7 +156,7 @@ class Critter(PhysicalObject):
             elif word[0] == "Go":
                 self.heading = self.heading.normalized
             elif word[0] == "Turn":
-                self.heading = Heading(self.heading.phi+float(word[1]))
+                self.heading = Heading(self.heading.phi+sorted([-sharpest_turn,float(word[1]),sharpest_turn])[1])
             elif word[0] == "Accelerate":
                 self.heading *= float(word[1])
                 if self.heading.rho > max_speed:
