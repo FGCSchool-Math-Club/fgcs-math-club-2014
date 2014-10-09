@@ -298,7 +298,7 @@ class Pit(PhysicalObject):
 class World:
     height = 100
     width  = 200
-    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False):
         self.critters = []
         self.starting_critters = []
         self.world_view = WorldView(self,5)
@@ -309,6 +309,7 @@ class World:
         self.neighbors = None
         self.tick_time = tick_time
         self.tick_limit = tick_limit
+        self.warn = warn
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -354,7 +355,7 @@ class World:
             excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
                 time.sleep(excess_time)
-            else:
+            elif self.warn:
                 print("Tick over time by ",-excess_time," seconds!")
     def wrap(self,p):
         h = self.height
@@ -430,6 +431,7 @@ parser.add_argument('-n', default= -1, type=int)
 parser.add_argument('-c', default= 10, type=int)
 parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
+parser.add_argument('-w', default=False, action='store_true')
 
 cmd = parser.parse_args()
 
@@ -448,7 +450,7 @@ for file in glob.glob("*_brains.py"):
         Users.register(match.group(1))
         exec(open(file, "r").read())
 
-w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p)
+w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,warn=cmd.w)
 if True:
     [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c)]
 else:
