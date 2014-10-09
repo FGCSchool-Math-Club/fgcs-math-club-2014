@@ -106,6 +106,7 @@ class Critter(PhysicalObject):
         self.last_spoke = -10
         self.sense_data = None
         self.whats_under = set()
+        self.age = 0
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -113,6 +114,7 @@ class Critter(PhysicalObject):
         print(self.location)
     def on_tick(self):
         if not self.dead:
+            self.age += 1
             for x in list(self.whats_under):
                 if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
                     self.whats_under.remove(x)
@@ -298,6 +300,7 @@ class World:
     width  = 200
     def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0):
         self.critters = []
+        self.starting_critters = []
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
@@ -310,6 +313,7 @@ class World:
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
         self.critters.append(critter)
+        self.starting_critters.append(critter)
         critter.teleport_to(self,self.random_location())
     def dump_status(self):
         for c in self.critters:
@@ -358,6 +362,12 @@ class World:
         if isinstance(p,Point):  return Point(p.x % w,p.y % h)
         if isinstance(p,Vector): return Vector((p.x+w/2) % w - w/2,(p.y+h/2) % h - h/2)
         return p
+    def print_stats(self):
+        print("Food remaining: ",sum(f.value for f in self.food))
+        print("Critters at startg: ",len(self.starting_critters))
+        print("Critters remaining: ",len(self.critters))
+        for c in sorted(self.starting_critters,key=lambda c: (c.age,c.size),reverse=True):
+            print("    %5s %6s  %5.1f" % (c.name,["alive","%5.2f" % (c.age*self.tick_time)][c.dead],c.size))
 
 class WorldView:
     def __init__(self,world,scale):
@@ -423,7 +433,15 @@ parser.add_argument('-p', default=  0, type=int)
 
 cmd = parser.parse_args()
 
+import atexit
 import glob,re
+
+@atexit.register
+def show_stats():
+    global w
+    w.print_stats()
+
+
 for file in glob.glob("*_brains.py"):
     match = re.search('^(.+)_brains.py$', file)
     if match:
