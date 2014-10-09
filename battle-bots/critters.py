@@ -131,8 +131,8 @@ class Critter(PhysicalObject):
             self.act(self.brain_on_collision(dir,other) or "Eat")
         else:
             self.say("Ooof!")
-            self.size  -= self.size/(self.size+other.size) # Not quite right, 'cause one goes first
-            self.heading -= dir
+            self.size  -= 0.1*self.size/(self.size+other.size) # Not quite right, 'cause one goes first
+            self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
             self.act(self.brain_on_collision(dir,other))
     def teleport_to(self,world,loc):
         self.world    = world
