@@ -327,7 +327,8 @@ class World:
         self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
         neighborhood_radius = min(self.height,self.width)/2
-        while self.world_view.window_open and self.clock != self.tick_limit:
+        stop_count = math.log(math.e*len(self.starting_critters))
+        while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) > stop_count:
             loop_start = time.time()
             self.clock += 1
             self.sounds   = [s for s in self.sounds if not s.faded]
