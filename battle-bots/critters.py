@@ -120,11 +120,12 @@ class Critter(PhysicalObject):
                     self.whats_under.remove(x)
             self.sense_data = self.senses()
             self.size -= 0.01 + 0.1*self.heading.rho
-            if self.size <= 0: self.die()
-            self.act(self.brain_on_tick())
-            self.location.translate(self.heading.x,self.heading.y)
-            self.location = self.world.wrap(self.location)
-            self.act("Eat")
+            if self.size <= 0:
+                self.die(sound="..nnn...nnn..nnn...",volume=6)
+            else:
+                self.act(self.brain_on_tick() or "Eat")
+                self.location.translate(self.heading.x,self.heading.y)
+                self.location = self.world.wrap(self.location)
     def on_collision(self,dir,other):
         self.whats_under.add(other)
         if isinstance(other,Food):
@@ -132,14 +133,18 @@ class Critter(PhysicalObject):
         else:
             self.say("Ooof!")
             self.size  -= 0.1*self.size/(self.size+other.size) # Not quite right, 'cause one goes first
-            self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
-            self.act(self.brain_on_collision(dir,other))
+            if self.size <= 0:
+                self.die(volume=0)
+            else:
+                self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
+                self.act(self.brain_on_collision(dir,other))
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
-    def die(self):
+    def die(self,sound="Aaaaaaaaa...!",volume=20):
+        self.size = 0
         if not self.dead:
-            self.say("Aaaaaaaaa...!",volume=20)
+            self.say(sound,volume=volume)
             self.dead = True
     def say(self,msg,volume=10):
         if not self.dead:
