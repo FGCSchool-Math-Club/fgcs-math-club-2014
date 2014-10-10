@@ -19,10 +19,13 @@ The Critter API presently supports three event types:
 
     Called when your critter is involved in a collision.  Passes in four parameters:
 
-    1. `self` – this is your critter
-    2. `dir` – the compass direction to the thing that you collided with ***deprecated***
-    3. `other` – the thing you collided with
-    4. `senses` – what you can sense (see the next section for details)
+    1\. `self` – this is your critter
+    
+    2\. `dir` – the compass direction to the thing that you collided with ***deprecated***
+
+    3\. `other` – the thing you collided with
+
+    4\. `senses` – what you can sense (see the next section for details)
 
 * `on_attack(self,dir,attacker,senses)`
 
@@ -61,23 +64,26 @@ deprecated in the future the assumption will be `“Pass”`).  Presently
 supported commands are:
 
 
-`"Stop"` – Stop moving (actually, just slow waaaay down).
+* `"Stop"` – Stop moving (actually, just slow waaaay down).
 
-`"Go"` – Resume moving at a normal speed.
+* `"Go"` – Resume moving at a normal speed.
 
-`"Turn X"` – Turn a given amount.  If X is negative, turns left; if X is
-positive, turns right.  If X is zero, does nothing.  There's a limit
-to how far you can turn in one tick; trying to turn further than this
-just turns the maximum amount.
+* `"Turn X"` – Turn a given amount.
 
-`"Accelerate X"` – Accelerate by the given ratio.  If X is less than
-1.0, slows down.  You can only go so fast; attempting to accelerate
-past the maximum speed does nothing.
+    If X is negative, turns left; if X is positive, turns right.  If X
+    is zero, does nothing.  There's a limit to how far you can turn in
+    one tick; trying to turn further than this just turns the maximum
+    amount.
 
-`"Attack"` – ***unimplemented***
+* `"Accelerate X"` – Accelerate by the given ratio.
 
-`"Eat"` – Eat if there's anything edible under you, otherwise does nothing.
+    If X is less than 1.0, slows down.  You can only go so fast;
+    attempting to accelerate past the maximum speed does nothing.
 
-`“Pass”` – Do nothing (continues moving forward unless stopped).
+* `"Attack"` – ***unimplemented***
 
-***More control commands may be added in the future***
+* `"Eat"` – Eat if there's anything edible under you, otherwise does nothing.
+
+* `“Pass”` – Do nothing (continues moving forward unless stopped).
+
+* ***More control commands may be added in the future***
