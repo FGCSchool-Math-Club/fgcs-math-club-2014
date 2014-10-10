@@ -16,18 +16,25 @@ things in surprising ways.
 The Critter API presently supports three event types:
 
 * `on_collision(self,dir,other,senses)`
+
     Called when your critter is involved in a collision.  Passes in four parameters:
-    1. `self` – this is your critter
-    2. `dir` – the compass direction to the thing that you collided with ***deprecated***
-    3. `other` – the thing you collided with
-    4. `senses` – what you can sense (see the next section for details)
+
+    #. `self` – this is your critter
+    #. `dir` – the compass direction to the thing that you collided with ***deprecated***
+    #. `other` – the thing you collided with
+    #. `senses` – what you can sense (see the next section for details)
+
 * `on_attack(self,dir,attacker,senses)`
+
     Never called, since there's presently no way for critters to attack
     each other and nothing else in the world that could attack them.
+
 * `on_tick(self,senses)`
+
     Called once a “tick” (about ten times a second).  This is the main
     callback that lets your critter decide what to do.  As above, <self> is
     set to your critter and <senses> provides the incoming data.
+
 * ***More callbacks may be added in the future***
 
 
