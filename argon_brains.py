@@ -125,6 +125,54 @@ class MunchyBrain(CritterBrain):
         if isinstance(other,Food):
             self.hit_food += 2
             return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+            self.hit_food += 2
+            return "Eat"
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
