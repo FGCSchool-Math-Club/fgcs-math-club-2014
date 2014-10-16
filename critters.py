@@ -372,6 +372,7 @@ class World:
         return p
     def print_stats(self):
         print("Food remaining: ",sum(f.value for f in self.food))
+        print("Brains available:   ",len(Brains.available))
         print("Critters at start:  ",len(self.starting_critters))
         print("Critters remaining: ",len(self.critters))
         for c in sorted(self.starting_critters,key=lambda c: (c.age,c.size),reverse=True):
