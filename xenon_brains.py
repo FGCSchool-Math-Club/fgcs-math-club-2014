@@ -7,7 +7,7 @@ from geo2d.geometry import *
 Users.initial = "Xe"
 
 class LookingBrain(CritterBrain):
-    code = "l"
+    code = "I"
     def __init__(self):
         CritterBrain.__init__(self)
         self.hit_food = 0
