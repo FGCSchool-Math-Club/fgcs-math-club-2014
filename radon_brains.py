@@ -62,7 +62,7 @@ class LookingBrain(CritterBrain):
                 if closest[1] < 5:
                     if self.moving:
                         self.moving = False
-                        return "Accelerate 0.01"
+                        return "Accelerate 0.1"
                     else:
                         return "Eat"
                 if closest[1] > 5 and not self.moving:
@@ -73,6 +73,9 @@ class LookingBrain(CritterBrain):
                 turn = -0.5
             else:
                 turn = 0.5
+        if not self.moving:
+            self.moving = True
+            return "Accelerate 10.0"
         return "Turn {}".format(turn)
 Brains.register(LookingBrain)
 
