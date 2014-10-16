@@ -26,6 +26,7 @@ class LookingBrain(CritterBrain):
             self.hit_food -= 1
         self.eating -= 1
         can_see = senses['sight']
+        food_seen = [x for x in can_see if x[0] == 'dark green']
         if not can_see:
             turn = uniform(-0.1,+0.1)*randrange(1,4)
         else:
