@@ -459,7 +459,7 @@ for file in glob.glob("*_brains.py"):
 
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,warn=cmd.w)
 if True:
-    [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c)]
+    [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 else:
-    [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c)]
+    [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c+1)]
 w.run()
