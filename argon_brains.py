@@ -47,8 +47,12 @@ class LookingBrain(CritterBrain):
             else:
                 turn = 0.5
         if not self.moving:
-            self.moving = True
-            return "Accelerate 10.0"
+            if not food_seen:
+                self.moving = True
+                return "Accelerate 10.0"
+        if not food_seen:
+            self.moving = False
+            return "Accelerate 0.0"
         return "Turn {}".format(turn)
 Brains.register(LookingBrain)
 
