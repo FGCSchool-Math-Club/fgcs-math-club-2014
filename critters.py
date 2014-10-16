@@ -175,6 +175,8 @@ class Critter(PhysicalObject):
                         f.value -= 0.1
                         self.size += 0.1
                         break
+            elif word[0] == "Pass":
+                pass
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
