@@ -13,6 +13,7 @@ class LookingBrain(CritterBrain):
         self.hit_food = 0
         self.eating = 0
         self.moving = True
+        self.age=0
     def on_collision(self,dir,other,senses):
         if isinstance(other,Food):
             self.hit_food += 2
@@ -20,6 +21,9 @@ class LookingBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
+        self.age=self.age+1
+        if self.age>200:
+            return "Stop"
         if self.hit_food > 0:  self.hit_food -= 1
         if self.hit_food >= 5:
             self.eating    = 3
