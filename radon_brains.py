@@ -13,6 +13,7 @@ class LookingBrain(CritterBrain):
         self.hit_food = 0
         self.eating = 0
         self.moving = True
+        self.time_since_yum = 0
     def on_collision(self,dir,other,senses):
         if isinstance(other,Food):
             self.hit_food += 2
@@ -20,12 +21,19 @@ class LookingBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
+        yums = [s in senses['hearing'] if s[0] == "Yum"]
+        if yums:
+            self.time_since_yum = 0
+        else:
+            self.time_since_yum = self.time_since_yum + 1
         if self.hit_food > 0:  self.hit_food -= 1
         if self.hit_food >= 5:
             self.eating    = 3
             self.hit_food -= 1
         self.eating -= 1
         can_see = senses['sight']
+        if self.time_since_yum > 100:
+            return "Stop"
         if not can_see:
             turn = uniform(-0.1,+0.1)*randrange(1,4)
         else:
