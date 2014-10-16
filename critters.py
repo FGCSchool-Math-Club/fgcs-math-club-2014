@@ -17,8 +17,8 @@ def as_color(r,g,b):
 def gray(x):
     return as_color(x,x,x)
 
-def Heading(dir):
-    return Vector(1.0,dir,coordinates="polar")
+def Heading(dir,rho=None):
+    return Vector(rho or 1.0,dir,coordinates="polar")
 
 class DisplayObject:
     def __init__(self,world,loc):
@@ -161,7 +161,7 @@ class Critter(PhysicalObject):
             elif word[0] == "Go":
                 self.heading = self.heading.normalized
             elif word[0] == "Turn":
-                self.heading = Heading(self.heading.phi+sorted([-sharpest_turn,float(word[1]),sharpest_turn])[1])
+                self.heading = Heading(self.heading.phi+sorted([-sharpest_turn,float(word[1]),sharpest_turn])[1],rho=self.heading.rho)
             elif word[0] == "Accelerate":
                 self.heading *= float(word[1])
                 if self.heading.rho > max_speed:
