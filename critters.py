@@ -256,11 +256,13 @@ class Critter(PhysicalObject):
             return self.brain.on_tick(self.sense_data)
         except Exception as e:
             traceback.print_tb(sys.exc_info()[-1], limit=3)
+            self.die()
     def brain_on_collision(self,dir,other):
         try:
             return self.brain.on_collision(dir,other,self.sense_data)
         except Exception as e:
             traceback.print_tb(sys.exc_info()[-1], limit=3)
+            self.die()
 
 class CritterBrain:
     code  = ''
@@ -458,7 +460,10 @@ for file in glob.glob("*_brains.py"):
     match = re.search('^(.+)_brains.py$', file)
     if match:
         Users.register(match.group(1))
-        exec(open(file, "r").read())
+        try:
+            exec(compile(open(file, "r").read(), file, 'exec'))
+        except Exception as e:
+            traceback.print_exception(*sys.exc_info(),limit=1)
 
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,warn=cmd.w)
 if True:
