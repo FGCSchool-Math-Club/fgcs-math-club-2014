@@ -56,9 +56,9 @@ long ago) ***should probably include loudness***
 ###Control commands (from your code)
 
 Callbacks can return a string telling your critter's body what to do.
-If no command is given, most callbacks presently assume `“Eat”` (this is
-deprecated in the future the assumption will be `“Pass”`).  Presently
-supported commands are:
+If no command is given, most callbacks presently assume `“Pass”` (the
+main exception being on_collision, which defaults to `"Eat"` if the collision
+was with Food).  Presently supported commands are:
 
 
 * `"Stop"` – Stop moving (actually, just slow waaaay down).

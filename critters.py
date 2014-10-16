@@ -123,7 +123,7 @@ class Critter(PhysicalObject):
             if self.size <= 0:
                 self.die(sound="..nnn...nnn..nnn...",volume=6)
             else:
-                self.act(self.brain_on_tick() or "Eat")
+                self.act(self.brain_on_tick() or "Pass")
                 self.location.translate(self.heading.x,self.heading.y)
                 self.location = self.world.wrap(self.location)
     def on_collision(self,dir,other):
@@ -137,7 +137,7 @@ class Critter(PhysicalObject):
                 self.die(volume=0)
             else:
                 self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
-                self.act(self.brain_on_collision(dir,other))
+                self.act(self.brain_on_collision(dir,other) or "Pass")
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
