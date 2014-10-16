@@ -5,34 +5,6 @@
 from geo2d.geometry import *
 
 Users.initial = "Kr"
-class EvesdroppingBrain(CritterBrain):
-    code = "e"
-    def __init__(self):
-        CritterBrain.__init__(self)
-        self.pit_location_guesses = []
-    def on_collision(self,dir,other,senses):
-        pass
-    def on_attack(self,dir,attacker,senses):
-        pass
-    def pit_guess(self):
-        p = sum(self.pit_location_guesses,Vector(0,0))
-        n = len(self.pit_location_guesses)
-        #print(Point(p.x/n,p.y/n))
-        return Point(p.x/n,p.y/n)
-    def on_tick(self,senses):
-        my_loc = senses['gps']
-        for sound in senses['hearing']:
-            if sound[0].startswith('Aaaa'):
-                p = Vector(*my_loc) + Vector(sound[1]+senses['compass'],50,coordinates="polar")
-                print(p)
-                self.pit_location_guesses.append(p)
-        if self.pit_location_guesses and my_loc.distance_to(self.pit_guess()) < 20:
-            print(self.pit_guess())
-            dir = Vector(my_loc,self.pit_guess()).phi
-            return "Turn {}".format(dir+math.pi-senses['compass'])
-        else:
-            return "Turn {}".format(uniform(-0.1,+0.1)*randrange(1,4))
-#Brains.register(EvesdroppingBrain)
 
 class LookingBrain(CritterBrain):
     code = "l"
@@ -110,16 +82,3 @@ class TastingBrain(CritterBrain):
             return "Turn {}".format(turn)
 Brains.register(TastingBrain)
 
-class ZigBrain(CritterBrain):
-    code = "Z"
-    def on_collision(self,dir,other,senses):
-        pass
-    def on_attack(self,dir,attacker,senses):
-        pass
-    def on_tick(self,senses):
-        if randrange(1,10) == 1:
-            return "Turn {}".format(uniform(-1,1))
-        else:
-            return "Accelerate 1.01"
-
-#Brains.register(ZigBrain)
