@@ -387,13 +387,16 @@ class World:
                             self.neighbors[c].add(o)
             for c in self.display_objects():
                 c.on_tick()
+            checked = {}
             for c in self.critters:
+                checked[c] = True
                 for o in self.neighbors[c]:
-                    if c.distance_to(o) < c.radius() + o.radius():
-                        if overlap(Polygon(c.outline()),Polygon(o.outline())):
-                            v = o.displacement_to(c).normalized
-                            c.on_collision(-v,o)
-                            o.on_collision( v,c)
+                    if not checked.get(o,False):
+                        if c.distance_to(o) < c.radius() + o.radius():
+                            if overlap(Polygon(c.outline()),Polygon(o.outline())):
+                                v = o.displacement_to(c).normalized
+                                c.on_collision(-v,o)
+                                o.on_collision( v,c)
             self.world_view.on_tick()
             excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
