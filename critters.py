@@ -21,19 +21,31 @@ def gray(x):
 def Heading(dir,rho=None):
     return Vector(rho or 1.0,dir,coordinates="polar")
 
-def overlap(poly1,poly2):
+def overlap(poly1,poly2,c1=None,c2=None,r1=None,r2=None):
     b1 = poly1.bounding_box
     b2 = poly2.bounding_box
-    if b1.left > b2.right or b1.right < b2.left or b1.top < b2.bottom or b1.bottom > b2.top:
+    c1 = c1 or poly1.centroid
+    c2 = c2 or poly1.centroid
+    r1 = r1 or poly1.diameter
+    r2 = r2 or poly2.diameter
+    d = r1+r2
+    c = Point((r1*c1.x+r2*c2.x)/d,(r1*c1.y+r2*c2.y)/d)
+    # This isn't the right value for o -- the real overlap is lense shaped.
+    o = d - c1.distance_to(c2)
+    if o < 0 or b1.left > b2.right or b1.right < b2.left or b1.top < b2.bottom or b1.bottom > b2.top:
         return False
-    for e1 in poly1.edges:
-        for e2 in poly2.edges:
-            if e1.intersection(e2):
-                return True
     for p1 in poly1.vertices:
-        if poly2.has(p1): return True
+        if c.distance_to(p1) < o and poly2.has(p1):
+            return True
     for p2 in poly2.vertices:
-        if poly1.has(p2): return True
+        if c.distance_to(p2) < o and poly1.has(p2):
+            return True
+    e2_near_edges = [e for e in poly2.edges if c.distance_to(e) < o]
+    for e1 in poly1.edges:
+        if c.distance_to(e1) < o:
+            for e2 in e2_near_edges:
+                if e1.intersection(e2):
+                    return True
     return False
 
 class DisplayObject:
@@ -393,7 +405,7 @@ class World:
                 for o in self.neighbors[c]:
                     if not checked.get(o,False):
                         if c.distance_to(o) < c.radius() + o.radius():
-                            if overlap(Polygon(c.outline()),Polygon(o.outline())):
+                            if overlap(Polygon(c.outline()),Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
                                 v = o.displacement_to(c).normalized
                                 c.on_collision(-v,o)
                                 o.on_collision( v,c)
