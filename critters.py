@@ -82,6 +82,12 @@ class PhysicalObject(DisplayObject):
         pass
     def radius(self):
         return 1
+    def outline(self):
+        r    = self.radius()
+        loc  = self.location
+        sides = 8
+        q    = 2*math.pi/sides
+        return [(loc.x+r*math.cos(a*q),loc.y+r*math.sin(a*q)) for a in range(0,sides)]
     def draw(self, canvas,s):
         r = self.radius()
         if r > 0:
