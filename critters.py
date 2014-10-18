@@ -21,6 +21,21 @@ def gray(x):
 def Heading(dir,rho=None):
     return Vector(rho or 1.0,dir,coordinates="polar")
 
+def overlap(poly1,poly2):
+    b1 = poly1.bounding_box
+    b2 = poly2.bounding_box
+    if b1.left > b2.right or b1.right < b2.left or b1.top < b2.bottom or b1.bottom > b2.top:
+        return False
+    for e1 in poly1.edges:
+        for e2 in poly2.edges:
+            if e1.intersection(e2):
+                return True
+    for p1 in poly1.vertices:
+        if poly2.has(p1): return True
+    for p2 in poly2.vertices:
+        if poly1.has(p2): return True
+    return False
+
 class DisplayObject:
     def __init__(self,world,loc):
         self.world = world
@@ -375,9 +390,10 @@ class World:
             for c in self.critters:
                 for o in self.neighbors[c]:
                     if c.distance_to(o) < c.radius() + o.radius():
-                        v = o.displacement_to(c).normalized
-                        c.on_collision(-v,o)
-                        o.on_collision( v,c)
+                        if overlap(Polygon(c.outline()),Polygon(o.outline())):
+                            v = o.displacement_to(c).normalized
+                            c.on_collision(-v,o)
+                            o.on_collision( v,c)
             self.world_view.on_tick()
             excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
