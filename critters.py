@@ -7,6 +7,7 @@ from tkinter import *
 import time
 from intervalset import AngularIntervalSet
 import sys,traceback
+from collections import namedtuple
 
 def random_color():
     return "#%02x%02x%02x" % (randrange(0,255),randrange(0,255),randrange(0,255))
@@ -189,11 +190,14 @@ class Critter(PhysicalObject):
         return self.relative_heading(self.displacement_to(x).phi)
     def distance_to(self,other):
         return self.displacement_to(other).rho
+    Sight = namedtuple("Sight", "color distance direction width change")
+    Sound = namedtuple("Sound", "text direction volume age")
+    Smell = namedtuple("Smell", "smell strength change")
     def senses(self):
         return {
             'sight':   self.sight(), # set of tuples: (color,distance,direction,width,change)
-            'smell':   set(), # set of tuples: (strength,smell,change)
-            'hearing': set([(s.text,self.relative_heading_to(s),s.age) for s in self.world.sounds]),
+            'smell':   set(), # set of tuples: (smell,strength,change)
+            'hearing': set([Critter.Sound(s.text,self.relative_heading_to(s),1,s.age) for s in self.world.sounds]),
             'taste':   set([type(x) for x in self.whats_under]),
             'gps':     self.location,
             'compass': self.heading.phi,
@@ -221,7 +225,7 @@ class Critter(PhysicalObject):
              # the object blocks things that are further
              view_mask    = view_mask.intersection(image.inverse())
              for segment in visable_part.ranges():
-                 sights.add((obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
+                 sights.add(Critter.Sight(obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
              # stop when our field of view is full
              if view_mask.trivial(): break
         # TODO: figure out how to calculate change
