@@ -12,7 +12,6 @@ class HibernationBrain(CritterBrain):
         CritterBrain.__init__(self)
         self.hit_food = 0
         self.eating = 0
-        self.moving = True
     def on_collision(self,dir,other,senses):
         if isinstance(other,Food):
             self.hit_food += 2
@@ -27,31 +26,28 @@ class HibernationBrain(CritterBrain):
         self.eating -= 1
         can_see = senses['sight']
         food_seen = [x for x in can_see if x.color == 'dark green']
+        moving = senses['body'].moving
         if not can_see:
             turn = uniform(-0.1,+0.1)*randrange(1,4)
         else:
             closest = min(can_see, key=lambda s: s.distance)
             if closest.color == 'dark green':
                 if closest.distance < 5:
-                    if self.moving:
-                        self.moving = False
+                    if moving:
                         return "Accelerate 0.1"
                     else:
                         return "Eat"
-                if closest.distance > 5 and not self.moving:
-                    self.moving = True
+                if closest.distance > 5 and not moving:
                     return "Accelerate 10.0"
                 turn = closest.direction
             elif closest.direction > 0:
                 turn = -0.5
             else:
                 turn = 0.5
-        if not self.moving:
+        if not moving:
             if not food_seen:
-                self.moving = True
                 return "Accelerate 10.0"
         if not food_seen:
-            self.moving = False
             return "Accelerate 0.0"
         return "Turn {}".format(turn)
 Brains.register(HibernationBrain)
@@ -60,21 +56,19 @@ class TastingBrain(CritterBrain):
     code = "t"
     def __init__(self):
         CritterBrain.__init__(self)
-        self.moving = True
     def on_collision(self,dir,other,senses):
         pass
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
         can_see = senses['sight']
+        moving = senses['body'].moving
         if Food in senses['taste']:
-            if self.moving and randrange(0,4) == 0:
-                self.moving = False
+            if moving and randrange(0,4) == 0:
                 return "Stop"
             else:
                 return "Eat"
-        elif not self.moving:
-            self.moving = True
+        elif not moving:
             return "Go"
         else:
             if not can_see:

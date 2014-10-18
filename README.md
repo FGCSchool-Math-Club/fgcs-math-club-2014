@@ -49,6 +49,7 @@ organs:
 * `senses['hearing']` – A set of tuples: (sound, relative direction, how
 long ago) ***should probably include loudness***
 * `senses['taste']` – A set of tastes
+* `senses['body']` – A body senses tuple: (moving, speed, age, health)
 * `sense['gps']` – Your critter's current location  ***deprecated***
 * `sense['compass']` – The direction your critter is facing ***deprecated***
 * ***More senses should be added (e.g. movement, health, hunger, etc.)***
