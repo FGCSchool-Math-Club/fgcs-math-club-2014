@@ -28,6 +28,11 @@ class DisplayObject:
         pass
     def draw(self, canvas,s):
         pass
+    def remove_image(self,canvas):
+        for part in self.tk_ids.values(): canvas.delete(part)
+        self.tk_ids = {}
+    def place_image_part(self,part,canvas,s,*coords):
+        canvas.coords(self.tk_ids[part],*[s*coord for coord in coords])
     def displacement_to(self,other):
         loc = other.location if hasattr(other, "location") else other
         return self.world.wrap(Vector(self.location,loc))
@@ -37,7 +42,7 @@ class Sound(DisplayObject):
         DisplayObject.__init__(self,world,loc)
         self.volume = volume
         self.text   = text
-        self.tk_id  = None
+        self.tk_ids = {}
         self.age    = 1
         self.faded  = False
     def on_tick(self):
@@ -50,25 +55,25 @@ class Sound(DisplayObject):
         elif r < 75: return 'gray75'
         else:        return 'gray75' #None
     def draw(self, canvas, s):
-        if self.tk_id:
-            canvas.delete(self.tk_id)
-            self.tk_id = None    
+        self.remove_image(canvas)
         if self.age < self.volume:
             loc  = self.location
-            self.tk_id = canvas.create_text(
-                s*loc.x, s*loc.y-20,
-                text=self.text,
-                font=('Helvetica',int(s*((self.volume+self.age)/10)**2)),
-                fill=gray(max(self.age/self.volume-0.2,0)),
-                stipple=self.stipple()
-                )
+            self.tk_ids = {
+                'text': canvas.create_text(
+                    s*loc.x, s*loc.y-20,
+                    text=self.text,
+                    font=('Helvetica',int(s*((self.volume+self.age)/10)**2)),
+                    fill=gray(max(self.age/self.volume-0.2,0)),
+                    stipple=self.stipple()
+                    )
+                }
         else:
             self.faded = True
 
 class PhysicalObject(DisplayObject):
     def __init__(self,world,loc):
         DisplayObject.__init__(self,world,loc)
-        self.tk_id = None
+        self.tk_ids = {}
         self.color = {"fill": "black"}
     def dump_status(self):
         print(self.location)
@@ -79,15 +84,13 @@ class PhysicalObject(DisplayObject):
     def draw(self, canvas,s):
         r = self.radius()
         if r > 0:
-            if self.tk_id is None:
-                self.tk_id = canvas.create_oval(50, 50, s*2*r, s*2*r, **self.color)
-            canvas.tag_lower(self.tk_id)
+            if not self.tk_ids:
+                self.tk_ids = { 'image': canvas.create_oval(50, 50, s*2*r, s*2*r, **self.color) }
+            canvas.tag_lower(self.tk_ids['image'])
             loc = self.location
-            canvas.coords(self.tk_id,      s*loc.x-s*r, s*loc.y-s*r,s*loc.x+s*r, s*loc.y+s*r)
+            self.place_image_part('image',canvas,s,loc.x-r, loc.y-r,loc.x+r, loc.y+r)
         else:
-            if self.tk_id:
-                canvas.delete(self.tk_id)
-                self.tk_id = None
+            self.remove_image(canvas)
 
 class Critter(PhysicalObject):
     def __init__(self,world,brain_class,name):
@@ -100,7 +103,6 @@ class Critter(PhysicalObject):
         self.shape   = [1.0,1.0,1.0]+profile+list(reversed(profile))
         self.size = 25
         self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
-        self.tk_id = None
         self.brain = brain_class()
         self.dead = False
         self.last_spoke = -10
@@ -224,33 +226,35 @@ class Critter(PhysicalObject):
              if view_mask.trivial(): break
         # TODO: figure out how to calculate change
         return sights
+    def outline(self):
+        r    = self.radius()
+        loc  = self.location
+        phi  = self.heading.phi
+        q    = 2*math.pi/len(self.shape)
+        return [coord for a, d in enumerate(self.shape) for coord in (loc.x+r*d*math.cos(a*q+phi),loc.y+r*d*math.sin(a*q+phi))]
+    def create_image(self,canvas):
+        self.tk_ids = {
+            'body':  canvas.create_polygon(1,1,**self.color),
+            'text':  canvas.create_text(50,50, text=self.name),
+            'eye':   canvas.create_oval(50, 50, 1, 1, fill = "white"),
+            'pupil': canvas.create_oval(50, 50, 1, 1, fill = "black", outline="blue"),
+        }
+    def place_image(self,canvas,s):
+        outline = self.outline()
+        loc  = self.location
+        px = 1/s
+        x,y = outline[2],outline[3]
+        pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
+        self.place_image_part('text', canvas,s,loc.x,loc.y)
+        self.place_image_part('body', canvas,s,*outline)
+        self.place_image_part('eye',  canvas,s,   x-1, y-1, x+1, y+1)
+        self.place_image_part('pupil',canvas,s, x+pp.x/2-px, y+pp.y/2-px, x+pp.x/2+px, y+pp.y/2+px)
     def draw(self, canvas,s):
-        if not self.dead:
-            r    = self.radius()
-            loc  = self.location
-            phi  = self.heading.phi
-            q    = 2*math.pi/len(self.shape)
-            outline = [coord for a, d in enumerate(self.shape) for coord in (s*loc.x+s*r*d*math.cos(a*q+phi),s*loc.y+s*r*d*math.sin(a*q+phi))]
-            if self.tk_id is None:
-                self.tk_id = canvas.create_polygon(*outline, **self.color)
-                self.tk_text_id = canvas.create_text(50,50, text=self.name)
-                self.tk_eye_id   = canvas.create_oval(50, 50, s, s, fill = "white")
-                self.tk_pupil_id = canvas.create_oval(50, 50, s, s, fill = "black", outline="blue")
-            canvas.coords(self.tk_text_id, s*loc.x, s*loc.y)
-            canvas.coords(self.tk_id,      *outline)
-            x,y = outline[2],outline[3]
-            pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
-            canvas.coords(self.tk_eye_id,   x         -s, y         -s, x         +s, y          +s)
-            canvas.coords(self.tk_pupil_id, x+s*pp.x/2-1, y+s*pp.y/2-1, x+s*pp.x/2+1, y+s*pp.y/2+1)
-        elif self.tk_id:
-            canvas.delete(self.tk_id)
-            self.tk_id = None
-            canvas.delete(self.tk_text_id)
-            self.tk_text_id = None
-            canvas.delete(self.tk_eye_id)
-            self.tk_eye_id = None
-            canvas.delete(self.tk_pupil_id)
-            self.tk_pupil_id = None
+        if self.dead:
+            self.remove_image(canvas)
+        else:
+            if not self.tk_ids: self.create_image(canvas)
+            self.place_image(canvas,s)
     def brain_on_tick(self):
         try:
             return self.brain.on_tick(self.sense_data)
