@@ -189,8 +189,8 @@ class Critter(PhysicalObject):
             if self.world.clock - self.last_spoke > 10:
                 self.world.sound(self.location,volume,msg)
                 self.last_spoke = self.world.clock
+    max_speed = 1.5
     def act(self,cmd):
-        max_speed = 1.5
         sharpest_turn = 0.2
         if not cmd is None:
             word = cmd.split()
@@ -202,8 +202,8 @@ class Critter(PhysicalObject):
                 self.heading = Heading(self.heading.phi+sorted([-sharpest_turn,float(word[1]),sharpest_turn])[1],rho=self.heading.rho)
             elif word[0] == "Accelerate":
                 self.heading *= float(word[1])
-                if self.heading.rho > max_speed:
-                    self.heading *= max_speed/self.heading.rho
+                if self.heading.rho > self.max_speed:
+                    self.heading *= self.max_speed/self.heading.rho
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
@@ -383,7 +383,9 @@ class World:
     def sound(self,loc,volume,text):
         self.sounds.append(Sound(self,loc,volume,text))
     def run(self):
-        neighborhood_radius = min(self.height,self.width)/2
+        neighborhood_refresh = 4
+        neighborhood_radius_x = self.width/6 +Critter.max_speed*neighborhood_refresh
+        neighborhood_radius_y = self.height/6+Critter.max_speed*neighborhood_refresh
         stop_count = math.log(math.e*len(self.starting_critters))
         while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) > stop_count:
             loop_start = time.time()
@@ -392,14 +394,15 @@ class World:
             self.food     = [f for f in self.food if f.value > 0]
             self.critters = [c for c in self.critters if not c.dead] 
             shuffle(self.critters)
-            if self.clock % 10 == 0 or not self.neighbors:
+            if self.clock % neighborhood_refresh == 0 or not self.neighbors:
                 self.neighbors = {}
                 for c in self.critters:
                     self.neighbors[c] = set()
                     others = set(self.physical_objects())
                     others.remove(c)
                     for o in others:
-                        if c.distance_to(o) < neighborhood_radius:
+                        disp = c.displacement_to(o)
+                        if (disp.x/neighborhood_radius_x)**2 + (disp.y/neighborhood_radius_y)**2 < 1:
                             self.neighbors[c].add(o)
             for c in self.display_objects():
                 c.on_tick()
