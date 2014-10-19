@@ -191,6 +191,7 @@ class Critter(PhysicalObject):
                 self.last_spoke = self.world.clock
     max_speed = 1.5
     def act(self,cmd):
+        if self.dead: return
         sharpest_turn = 0.2
         if not cmd is None:
             word = cmd.split()
