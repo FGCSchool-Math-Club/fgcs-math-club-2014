@@ -107,6 +107,8 @@ class PhysicalObject(DisplayObject):
         print(self.location)
     def on_collision(self,dir,other):
         pass
+    def on_damage(self,amount):
+        pass
     def radius(self):
         return 1
     def core_radius(self):
@@ -164,18 +166,20 @@ class Critter(PhysicalObject):
                 self.act(self.brain_on_tick() or "Pass")
                 self.location.translate(self.heading.x,self.heading.y)
                 self.location = self.world.wrap(self.location)
+    def on_damage(self,amount):
+        self.say("Ooof!")
+        self.size  -= amount
+        if self.size <= 0:
+            self.die(volume=0)
     def on_collision(self,dir,other):
         self.whats_under.add(other)
         if isinstance(other,Food):
             self.act(self.brain_on_collision(dir,other) or "Eat")
         else:
             self.say("Ooof!")
-            self.size  -= 0.1*self.size/(self.size+other.size) # Not quite right, 'cause one goes first
-            if self.size <= 0:
-                self.die(volume=0)
-            else:
-                self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
-                self.act(self.brain_on_collision(dir,other) or "Pass")
+            self.on_damage(0.1*self.size/(self.size+other.size)) # Not quite right, 'cause one goes first
+            self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
+            self.act(self.brain_on_collision(dir,other) or "Pass")
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
