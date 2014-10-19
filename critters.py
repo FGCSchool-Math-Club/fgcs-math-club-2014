@@ -420,18 +420,24 @@ class World:
                 for o in self.neighbors[c]:
                     if not checked.get(o,False):
                         d = c.distance_to(o)
-                        if d < c.radius() + o.radius():
-                            if d < core_radius + o.core_radius() or \
-                              overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
-                                v = o.displacement_to(c).normalized
-                                c.on_collision(-v,o)
-                                o.on_collision( v,c)
+                        if d >= c.radius() + o.radius():
+                            pass # they missed
+                        elif d < core_radius + o.core_radius():
+                            # solid hit
+                            self.process_collision(c,o)
+                        elif overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
+                            # glancing blow
+                            self.process_collision(c,o)
             self.world_view.on_tick()
             excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
                 time.sleep(excess_time)
             elif self.warn:
                 print("Tick over time by ",-excess_time," seconds!")
+    def process_collision(self,a,b):
+        v = b.displacement_to(a).normalized
+        a.on_collision(-v,b)
+        b.on_collision( v,a)
     def wrap(self,p):
         h = self.height
         w = self.width
