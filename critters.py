@@ -109,6 +109,8 @@ class PhysicalObject(DisplayObject):
         pass
     def radius(self):
         return 1
+    def core_radius(self):
+        return self.radius()
     def outline(self):
         r    = self.radius()
         loc  = self.location
@@ -217,6 +219,8 @@ class Critter(PhysicalObject):
                 print("Unknown command: {}".format(cmd))
     def radius(self):
         return math.sqrt(self.size) if self.size > 0 else 0
+    def core_radius(self):
+        return self.radius()*min(self.shape)
     def relative_heading(self,x):
         return (x-self.heading.phi+math.pi) % 2*math.pi + math.pi
     def relative_heading_to(self,x):
@@ -402,10 +406,15 @@ class World:
             checked = {}
             for c in self.critters:
                 checked[c] = True
+                c_outline = c.outline()
+                c_polygon = Polygon(c_outline)
+                core_radius = c.core_radius()
                 for o in self.neighbors[c]:
                     if not checked.get(o,False):
-                        if c.distance_to(o) < c.radius() + o.radius():
-                            if overlap(Polygon(c.outline()),Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
+                        d = c.distance_to(o)
+                        if d < c.radius() + o.radius():
+                            if d < core_radius + o.core_radius() or \
+                              overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
                                 v = o.displacement_to(c).normalized
                                 c.on_collision(-v,o)
                                 o.on_collision( v,c)
