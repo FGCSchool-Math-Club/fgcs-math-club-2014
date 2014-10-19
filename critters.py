@@ -40,9 +40,9 @@ def overlap(poly1,poly2,c1=None,c2=None,r1=None,r2=None):
     for p2 in poly2.vertices:
         if c.distance_to(p2) < o and poly1.has(p2):
             return True
-    e2_near_edges = [e for e in poly2.edges if c.distance_to(e) < o]
+    e2_near_edges = [e for e in poly2.edges if c.distance_to(e) < o and e.length > 0]
     for e1 in poly1.edges:
-        if c.distance_to(e1) < o:
+        if c.distance_to(e1) < o and e1.length > 0:
             for e2 in e2_near_edges:
                 if e1.intersection(e2):
                     return True
