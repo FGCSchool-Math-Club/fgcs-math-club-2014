@@ -139,7 +139,7 @@ class Critter(PhysicalObject):
         self.name  = name
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
-        self.shape   = [1.0,1.0,1.0]+profile+list(reversed(profile))
+        self.shape   = [1.0,0.8]+profile+list(reversed(profile))+[0.8]
         self.size = 25
         self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
         self.brain = brain_class()
@@ -305,7 +305,7 @@ class Critter(PhysicalObject):
         if len(Critter.trails) > 1000:
             canvas.delete(Critter.trails.pop(randrange(0,len(Critter.trails))))
         px = 1/s
-        x,y = outline[1]
+        x,y = outline[0]
         pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
         self.place_image_part('text', canvas,s,loc.x,loc.y)
         self.place_image_part('body', canvas,s,*[coord for p in outline for coord in p])
