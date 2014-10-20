@@ -65,6 +65,14 @@ class DisplayObject:
         loc = other.location if hasattr(other, "location") else other
         return self.world.wrap(Vector(self.location,loc))
 
+def stipple(r):
+    if   r < 12: return 'gray12'
+    elif r < 25: return 'gray25'
+    elif r < 50: return 'gray50'
+    elif r < 75: return 'gray75'
+    else:        return 'gray75' #None
+
+
 class Sound(DisplayObject):
     def __init__(self,world,loc,volume,text):
         DisplayObject.__init__(self,world,loc)
@@ -75,13 +83,6 @@ class Sound(DisplayObject):
         self.faded  = False
     def on_tick(self):
         self.age += 1
-    def stipple(self):
-        r = 100-(self.age*100)/self.volume
-        if   r < 12: return 'gray12'
-        elif r < 25: return 'gray25'
-        elif r < 50: return 'gray50'
-        elif r < 75: return 'gray75'
-        else:        return 'gray75' #None
     def draw(self, canvas, s):
         self.remove_image(canvas)
         if self.age < self.volume:
@@ -92,7 +93,7 @@ class Sound(DisplayObject):
                     text=self.text,
                     font=('Helvetica',int(s*((self.volume+self.age)/10)**2)),
                     fill=gray(max(self.age/self.volume-0.2,0)),
-                    stipple=self.stipple()
+                    stipple=stipple(100-(self.age*100)/self.volume)
                     )
                 }
         else:
