@@ -288,9 +288,22 @@ class Critter(PhysicalObject):
             'eye':   canvas.create_oval(50, 50, 1, 1, fill = "white"),
             'pupil': canvas.create_oval(50, 50, 1, 1, fill = "black", outline="blue"),
         }
+    trails = []
     def place_image(self,canvas,s):
         outline = self.outline()
         loc  = self.location
+        if randrange(0,2) == 0:
+            Critter.trails.append(canvas.create_oval(loc.x*s-1, loc.y*s-1, loc.x*s+1, loc.y*s+1, outline="blue"))
+        i = randrange(0,1000)
+        if i < len(Critter.trails):
+            x1,y1,x2,y2 = canvas.coords(Critter.trails[i])
+            if x2-x1 < 30:
+                canvas.coords(Critter.trails[i],x1-1,y1-1,x2+1,y2+1)
+                canvas.itemconfig(Critter.trails[i],outlinestipple=stipple(100-3*(x2-x1)))
+            else:
+                canvas.delete(Critter.trails.pop(i))
+        if len(Critter.trails) > 1000:
+            canvas.delete(Critter.trails.pop(randrange(0,len(Critter.trails))))
         px = 1/s
         x,y = outline[1]
         pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
