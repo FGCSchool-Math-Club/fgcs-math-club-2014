@@ -104,6 +104,8 @@ class PhysicalObject(DisplayObject):
         DisplayObject.__init__(self,world,loc)
         self.tk_ids = {}
         self.color = {"fill": "black"}
+        self.mass = 10000.0        # Achored to the ground
+        self.heading = Vector(0,0) # Going nowhere
     def dump_status(self):
         print(self.location)
     def on_collision(self,dir,other):
@@ -140,7 +142,7 @@ class Critter(PhysicalObject):
         self.heading = Heading(uniform(0.0,2*math.pi))
         profile = [uniform(0.5,0.8) for i in range(0,10)]
         self.shape   = [1.0,0.8]+profile+list(reversed(profile))+[0.8]
-        self.size = 25
+        self.mass = 25
         self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
         self.brain = brain_class()
         self.dead = False
@@ -160,8 +162,8 @@ class Critter(PhysicalObject):
                 if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
                     self.whats_under.remove(x)
             self.sense_data = self.senses()
-            self.size -= 0.01 + 0.1*self.heading.rho
-            if self.size <= 0:
+            self.mass -= 0.01 + 0.1*self.heading.rho
+            if self.mass <= 0:
                 self.die(sound="..nnn...nnn..nnn...",volume=6)
             else:
                 self.act(self.brain_on_tick() or "Pass")
@@ -169,23 +171,17 @@ class Critter(PhysicalObject):
                 self.location = self.world.wrap(self.location)
     def on_damage(self,amount):
         self.say("Ooof!")
-        self.size  -= amount
-        if self.size <= 0:
+        self.mass  -= amount
+        if self.mass <= 0:
             self.die(volume=0)
     def on_collision(self,dir,other):
         self.whats_under.add(other)
-        if isinstance(other,Food):
-            self.act(self.brain_on_collision(dir,other) or "Eat")
-        else:
-            self.say("Ooof!")
-            self.on_damage(0.1*self.size/(self.size+other.size)) # Not quite right, 'cause one goes first
-            self.location = self.world.wrap(Point(Vector(self.location)-dir*(other.size/self.size)))
-            self.act(self.brain_on_collision(dir,other) or "Pass")
+        self.act(self.brain_on_collision(dir,other) or ("Eat" if isinstance(other,Food) else "Pass"))
     def teleport_to(self,world,loc):
         self.world    = world
         self.location = loc
     def die(self,sound="Aaaaaaaaa...!",volume=20):
-        self.size = 0
+        self.mass = 0
         if not self.dead:
             self.say(sound,volume=volume)
             self.dead = True
@@ -217,14 +213,14 @@ class Critter(PhysicalObject):
                     if isinstance(f,Food) and f.value > 0:
                         self.say("Yum")
                         f.value -= 0.1
-                        self.size += 0.1
+                        self.mass += 0.1
                         break
             elif word[0] == "Pass":
                 pass
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
-        return math.sqrt(self.size) if self.size > 0 else 0
+        return math.sqrt(self.mass) if self.mass > 0 else 0
     def core_radius(self):
         return self.radius()*min(self.shape)
     def relative_heading(self,x):
@@ -243,7 +239,7 @@ class Critter(PhysicalObject):
             'smell':   set(), # set of tuples: (smell,strength,change)
             'hearing': set([Critter.Sound(s.text,self.relative_heading_to(s),1,s.age) for s in self.world.sounds]),
             'taste':   set([type(x) for x in self.whats_under]),
-            'body':    Critter.State(self.heading.rho>0.1,self.heading.rho,self.size,self.age),
+            'body':    Critter.State(self.heading.rho>0.1,self.heading.rho,self.mass,self.age),
             'gps':     self.location,
             'compass': self.heading.phi,
           }
@@ -449,9 +445,16 @@ class World:
             elif self.warn:
                 print("Tick over time by ",-excess_time," seconds!")
     def process_collision(self,a,b):
-        v = b.displacement_to(a).normalized
-        a.on_collision(-v,b)
-        b.on_collision( v,a)
+        d = b.displacement_to(a).normalized
+        v = a.heading - b.heading
+        impact = d.dot(v)**2
+        for x,s in [[a,+1],[b,-1]]:
+            relative_mass = x.mass/(a.mass+b.mass)
+            x.heading = Heading(x.heading.phi+s*((d-v*relative_mass*0.1).phi-d.phi),rho=x.heading.rho)
+            x.location = self.wrap(Point(Vector(x.location)+d*s*(1.0-relative_mass)))
+            x.on_damage(impact*0.1*(1.0-relative_mass))
+        a.on_collision(-d,b)
+        b.on_collision( d,a)
     def wrap(self,p):
         h = self.height
         w = self.width
@@ -463,8 +466,8 @@ class World:
         print("Brains available:   ",len(Brains.available))
         print("Critters at start:  ",len(self.starting_critters))
         print("Critters remaining: ",len(self.critters))
-        for c in sorted(self.starting_critters,key=lambda c: (c.age,c.size),reverse=True):
-            print("    %5s %6s  %5.1f" % (c.name,["alive","%5.2f" % (c.age*self.tick_time)][c.dead],c.size))
+        for c in sorted(self.starting_critters,key=lambda c: (c.age,c.mass),reverse=True):
+            print("    %5s %6s  %5.1f" % (c.name,["alive","%5.2f" % (c.age*self.tick_time)][c.dead],c.mass))
 
 class WorldView:
     def __init__(self,world,scale):
