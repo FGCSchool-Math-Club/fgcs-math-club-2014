@@ -64,6 +64,8 @@ class DisplayObject:
     def displacement_to(self,other):
         loc = other.location if hasattr(other, "location") else other
         return self.world.wrap(Vector(self.location,loc))
+    def distance_to(self,other):
+        return self.displacement_to(other).rho
 
 def stipple(r):
     if   r < 12: return 'gray12'
@@ -227,8 +229,6 @@ class Critter(PhysicalObject):
         return (x-self.heading.phi+math.pi) % 2*math.pi + math.pi
     def relative_heading_to(self,x):
         return self.relative_heading(self.displacement_to(x).phi)
-    def distance_to(self,other):
-        return self.displacement_to(other).rho
     Sight = namedtuple("Sight", "color distance direction width change")
     Sound = namedtuple("Sound", "text direction volume age")
     Smell = namedtuple("Smell", "smell strength change")
