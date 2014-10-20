@@ -573,6 +573,7 @@ parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
 parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
+parser.add_argument('files', nargs=argparse.REMAINDER)
 
 cmd = parser.parse_args()
 
@@ -585,7 +586,7 @@ def show_stats():
     w.print_stats()
 
 
-for file in glob.glob("*_brains.py"):
+for file in cmd.files or glob.glob("*_brains.py"):
     match = re.search('^(.+)_brains.py$', file)
     if match:
         Users.register(match.group(1))
