@@ -401,8 +401,8 @@ class World:
         neighborhood_refresh = 4
         neighborhood_radius_x = self.width/6 +Critter.max_speed*neighborhood_refresh
         neighborhood_radius_y = self.height/6+Critter.max_speed*neighborhood_refresh
-        stop_count = math.log(math.e*len(self.starting_critters))
-        while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) > stop_count:
+        stop_count = len(self.starting_critters) and math.log(math.e*len(self.starting_critters))
+        while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) >= stop_count:
             loop_start = time.time()
             self.clock += 1
             self.sounds   = [s for s in self.sounds if not s.faded]
