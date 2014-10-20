@@ -108,6 +108,7 @@ class PhysicalObject(DisplayObject):
         self.color = {"fill": "black"}
         self.mass = 10000.0        # Achored to the ground
         self.heading = Vector(0,0) # Going nowhere
+        self.hardness = 0.01
     def dump_status(self):
         print(self.location)
     def on_collision(self,dir,other):
@@ -143,6 +144,7 @@ class Block(PhysicalObject):
         self.width  = w
         self.mass   = 10
         self.color  = {"fill":"brown", "stipple":'gray75'}
+        self.hardness = 1.0
     def outline(self):
         loc = self.location
         h = self.heading.normalized
@@ -187,6 +189,7 @@ class Critter(PhysicalObject):
         self.sense_data = None
         self.whats_under = set()
         self.age = 0
+        self.hardness = 0.5
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -207,7 +210,8 @@ class Critter(PhysicalObject):
                 self.location.translate(self.heading.x,self.heading.y)
                 self.location = self.world.wrap(self.location)
     def on_damage(self,amount):
-        self.say("Ooof!")
+        if amount > 0.1:
+            self.say("Ooof!")
         self.mass  -= amount
         if self.mass <= 0:
             self.die(volume=0)
@@ -486,9 +490,10 @@ class World:
         impact = d.dot(v)**2
         for x,s in [[a,+1],[b,-1]]:
             relative_mass = x.mass/(a.mass+b.mass)
+            other_hardness = (a.hardness+b.hardness)-x.hardness
             x.heading = Heading(x.heading.phi+s*((d-v*relative_mass*0.1).phi-d.phi),rho=x.heading.rho)
             x.location = self.wrap(Point(Vector(x.location)+d*s*(1.0-relative_mass)))
-            x.on_damage(impact*0.1*(1.0-relative_mass))
+            x.on_damage(impact*0.1*(1.0-relative_mass)*other_hardness/x.hardness)
         a.on_collision(-d,b)
         b.on_collision( d,a)
     def wrap(self,p):
