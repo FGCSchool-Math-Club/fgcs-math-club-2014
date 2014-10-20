@@ -135,6 +135,41 @@ class PhysicalObject(DisplayObject):
         else:
             self.remove_image(canvas)
 
+class Block(PhysicalObject):
+    def __init__(self,world,loc,l=10,w=1):
+        PhysicalObject.__init__(self,world,loc)
+        self.heading = Heading(uniform(0.0,2*math.pi))*0.0001
+        self.length = l
+        self.width  = w
+        self.mass   = 10
+        self.color  = {"fill":"brown", "stipple":'gray75'}
+    def outline(self):
+        loc = self.location
+        h = self.heading.normalized
+        l = self.length
+        w = self.width
+        lx,ly = l*h.x, l*h.y
+        wx,wy = w*h.y,-w*h.x
+        return [
+            (loc.x+lx+wx,loc.y+ly+wy),
+            (loc.x+lx-wx,loc.y+ly-wy),
+            (loc.x-lx-wx,loc.y-ly-wy),
+            (loc.x-lx+wx,loc.y-ly+wy),
+            ]
+    #def on_tick(self):
+    #    self.heading = Heading(self.heading.phi+0.01)*0.0001
+    def core_radius(self):
+        return min(self.length,self.width)
+    def create_image(self,canvas):
+        self.tk_ids = { 'body':  canvas.create_polygon(1,1,**self.color) }
+    def place_image(self,canvas,s):
+        self.place_image_part('body', canvas,s,*[coord for p in self.outline() for coord in p])
+    def draw(self, canvas,s):
+        if not self.tk_ids: self.create_image(canvas)
+        self.place_image(canvas,s)
+    def radius(self):
+        return math.sqrt(self.length**2+self.width**2)
+
 class Critter(PhysicalObject):
     def __init__(self,world,brain_class,name):
         PhysicalObject.__init__(self,world,None)
@@ -370,12 +405,13 @@ class Pit(PhysicalObject):
 class World:
     height = 100
     width  = 200
-    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0):
         self.critters = []
         self.starting_critters = []
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
+        self.blocks = [Block(self,self.random_location())  for i in range(0,blocks)]
         self.sounds = []
         self.clock = 0
         self.neighbors = None
@@ -392,7 +428,7 @@ class World:
         for c in self.critters:
              c.dump_status()
     def physical_objects(self):
-        return self.critters + self.food + self.pits
+        return self.critters + self.food + self.pits + self.blocks
     def display_objects(self):
         return self.physical_objects() + self.sounds
     def sound(self,loc,volume,text):
@@ -411,7 +447,7 @@ class World:
             shuffle(self.critters)
             if self.clock % neighborhood_refresh == 0 or not self.neighbors:
                 self.neighbors = {}
-                for c in self.critters:
+                for c in self.critters+self.blocks:
                     self.neighbors[c] = set()
                     others = set(self.physical_objects())
                     others.remove(c)
@@ -422,7 +458,7 @@ class World:
             for c in self.display_objects():
                 c.on_tick()
             checked = {}
-            for c in self.critters:
+            for c in self.critters+self.blocks:
                 checked[c] = True
                 c_outline = c.outline()
                 c_polygon = Polygon(c_outline)
@@ -530,6 +566,7 @@ parser.add_argument('-n', default= -1, type=int)
 parser.add_argument('-c', default= 10, type=int)
 parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
+parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
 
 cmd = parser.parse_args()
@@ -552,7 +589,7 @@ for file in glob.glob("*_brains.py"):
         except Exception as e:
             traceback.print_exception(*sys.exc_info(),limit=1)
 
-w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,warn=cmd.w)
+w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w)
 if True:
     [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 else:
