@@ -109,6 +109,7 @@ class PhysicalObject(DisplayObject):
         self.mass = 10000.0        # Achored to the ground
         self.heading = Vector(0,0) # Going nowhere
         self.hardness = 0.01
+        self.dead = False
     def dump_status(self):
         print(self.location)
     def on_collision(self,dir,other):
@@ -125,9 +126,11 @@ class PhysicalObject(DisplayObject):
         sides = 8
         q    = 2*math.pi/sides
         return [(loc.x+r*math.cos(a*q),loc.y+r*math.sin(a*q)) for a in range(0,sides)]
+    def die(self,*args):
+        self.dead = True
     def draw(self, canvas,s):
         r = self.radius()
-        if r > 0:
+        if r > 0 and not self.dead:
             if not self.tk_ids:
                 self.tk_ids = { 'image': canvas.create_oval(50, 50, s*2*r, s*2*r, **self.color) }
             canvas.tag_lower(self.tk_ids['image'])
@@ -167,8 +170,11 @@ class Block(PhysicalObject):
     def place_image(self,canvas,s):
         self.place_image_part('body', canvas,s,*[coord for p in self.outline() for coord in p])
     def draw(self, canvas,s):
-        if not self.tk_ids: self.create_image(canvas)
-        self.place_image(canvas,s)
+        if self.dead:
+            self.remove_image(canvas)
+        else:
+            if not self.tk_ids: self.create_image(canvas)
+            self.place_image(canvas,s)
     def radius(self):
         return math.sqrt(self.length**2+self.width**2)
 
@@ -184,7 +190,6 @@ class Critter(PhysicalObject):
         self.mass = 25
         self.color = {"fill":random_color(), "smooth":1, "stipple":'gray50'}
         self.brain = brain_class()
-        self.dead = False
         self.last_spoke = -10
         self.sense_data = None
         self.whats_under = set()
@@ -225,7 +230,7 @@ class Critter(PhysicalObject):
         self.mass = 0
         if not self.dead:
             self.say(sound,volume=volume)
-            self.dead = True
+            PhysicalObject.die(self)
     def say(self,msg,volume=10):
         if not self.dead:
             if self.world.clock - self.last_spoke > 10:
