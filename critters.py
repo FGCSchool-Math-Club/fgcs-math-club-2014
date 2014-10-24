@@ -145,7 +145,7 @@ class Block(PhysicalObject):
         self.heading = Heading(uniform(0.0,2*math.pi))*0.0001
         self.length = l
         self.width  = w
-        self.mass   = 10
+        self.mass   = l*w
         self.color  = {"fill":"brown", "stipple":'gray75'}
         self.hardness = 1.0
     def outline(self):
@@ -420,7 +420,7 @@ class World:
         self.world_view = WorldView(self,5)
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
-        self.blocks = [Block(self,self.random_location())  for i in range(0,blocks)]
+        self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
         self.sounds = []
         self.clock = 0
         self.neighbors = None
