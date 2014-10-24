@@ -178,6 +178,40 @@ class Block(PhysicalObject):
     def radius(self):
         return math.sqrt(self.length**2+self.width**2)
 
+class Secretion(DisplayObject):
+    trails = []
+    undrawn = []
+    dead = set()
+    resized = set()
+    def __init__(self,world,loc):
+        DisplayObject.__init__(self,world,loc)
+        self.size = 2
+        self.tk_id = None
+        Secretion.undrawn.append(self)
+    def on_tick():
+        for t in range(0,100):
+            i = randrange(0,1000)
+            if i < len(Secretion.trails):
+                if Secretion.trails[i].size < 15:
+                    Secretion.resized.add(Secretion.trails[i])
+                else:
+                    Secretion.dead.add(Secretion.trails.pop(i))
+        while len(Secretion.trails) > 1000:
+            Secretion.dead.add(Secretion.trails.pop(randrange(0,len(Secretion.trails))))
+    def on_draw(canvas,s):
+        for t in Secretion.undrawn:
+            loc = t.location
+            t.tk_id = canvas.create_oval(loc.x*s-1, loc.y*s-1, loc.x*s+1, loc.y*s+1, outline="blue")
+            Secretion.trails.append(t)
+        Secretion.undrawn = []
+        for t in Secretion.resized:
+            x1,y1,x2,y2 = canvas.coords(t.tk_id)
+            canvas.coords(t.tk_id,x1-1,y1-1,x2+1,y2+1)
+            canvas.itemconfig(t.tk_id,outlinestipple=stipple(100-3*(x2-x1)))
+        for t in Secretion.dead: canvas.delete(t.tk_id)
+        Secretion.dead.clear()
+        Secretion.resized.clear()
+
 class Critter(PhysicalObject):
     def __init__(self,world,brain_class,name):
         PhysicalObject.__init__(self,world,None)
@@ -239,6 +273,8 @@ class Critter(PhysicalObject):
     max_speed = 1.5
     def act(self,cmd):
         if self.dead: return
+        if randrange(0,2) == 0:
+            Secretion(self.world,self.location)
         sharpest_turn = 0.2
         if not cmd is None:
             word = cmd.split()
@@ -328,22 +364,9 @@ class Critter(PhysicalObject):
             'eye':   canvas.create_oval(50, 50, 1, 1, fill = "white"),
             'pupil': canvas.create_oval(50, 50, 1, 1, fill = "black", outline="blue"),
         }
-    trails = []
     def place_image(self,canvas,s):
         outline = self.outline()
         loc  = self.location
-        if randrange(0,2) == 0:
-            Critter.trails.append(canvas.create_oval(loc.x*s-1, loc.y*s-1, loc.x*s+1, loc.y*s+1, outline="blue"))
-        i = randrange(0,1000)
-        if i < len(Critter.trails):
-            x1,y1,x2,y2 = canvas.coords(Critter.trails[i])
-            if x2-x1 < 30:
-                canvas.coords(Critter.trails[i],x1-1,y1-1,x2+1,y2+1)
-                canvas.itemconfig(Critter.trails[i],outlinestipple=stipple(100-3*(x2-x1)))
-            else:
-                canvas.delete(Critter.trails.pop(i))
-        if len(Critter.trails) > 1000:
-            canvas.delete(Critter.trails.pop(randrange(0,len(Critter.trails))))
         px = 1/s
         x,y = outline[0]
         pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
@@ -452,7 +475,8 @@ class World:
             self.clock += 1
             self.sounds   = [s for s in self.sounds if not s.faded]
             self.food     = [f for f in self.food if f.value > 0]
-            self.critters = [c for c in self.critters if not c.dead] 
+            self.critters = [c for c in self.critters if not c.dead]
+            Secretion.on_tick()
             shuffle(self.critters)
             if self.clock % neighborhood_refresh == 0 or not self.neighbors:
                 self.neighbors = {}
@@ -546,6 +570,7 @@ class WorldView:
         self.canvas.bind_all('<KeyPress-m>', menu)
     def on_tick(self):
         if self.window_open:
+            Secretion.on_draw(self.canvas,self.scale)
             for sprite in self.world.display_objects():
                 sprite.draw(self.canvas,self.scale)
             self.tk.update_idletasks()
