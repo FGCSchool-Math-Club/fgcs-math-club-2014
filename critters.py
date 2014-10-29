@@ -479,6 +479,7 @@ class World:
         while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) >= stop_count:
             loop_start = time.time()
             self.clock += 1
+            self.lighting = sorted([0,2*math.cos(self.clock/100),1])[1]
             self.sounds   = [s for s in self.sounds if not s.faded]
             self.food     = [f for f in self.food if f.value > 0]
             self.critters = [c for c in self.critters if not c.dead]
@@ -576,6 +577,7 @@ class WorldView:
         self.canvas.bind_all('<KeyPress-m>', menu)
     def on_tick(self):
         if self.window_open:
+            self.canvas.config(background=gray(self.world.lighting))
             Secretion.on_draw(self.canvas,self.scale)
             for sprite in self.world.display_objects():
                 sprite.draw(self.canvas,self.scale)
