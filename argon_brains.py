@@ -25,13 +25,13 @@ class HibernationBrain(CritterBrain):
             self.hit_food -= 1
         self.eating -= 1
         can_see = senses['sight']
-        food_seen = [x for x in can_see if x.color == 'dark green']
+        food_seen = [x for x in can_see if x.color == 'green']
         moving = senses['body'].moving
         if not can_see:
             turn = uniform(-0.1,+0.1)*randrange(1,4)
         else:
             closest = min(can_see, key=lambda s: s.distance)
-            if closest.color == 'dark green':
+            if closest.color == 'green':
                 if closest.distance < 5:
                     if moving:
                         return "Accelerate 0.1"
@@ -75,7 +75,7 @@ class TastingBrain(CritterBrain):
                 turn = uniform(-0.1,+0.1)*randrange(1,4)
             else:
                 closest = min(can_see, key=lambda s: s.distance)
-                if closest.color == 'dark green':
+                if closest.color == 'green':
                     turn = closest.direction
                 elif closest.direction > 0:
                     turn = -0.5

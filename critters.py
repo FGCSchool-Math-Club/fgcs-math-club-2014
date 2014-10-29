@@ -354,7 +354,8 @@ class Critter(PhysicalObject):
              # the object blocks things that are further
              view_mask    = view_mask.intersection(image.inverse())
              for segment in visable_part.ranges():
-                 sights.add(Critter.Sight(obj.color['fill'],dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
+                 color = obj.color['outline'] if 'outline' in obj.color else obj.color['fill']
+                 sights.add(Critter.Sight(color,dist,(segment[0]+segment[1])/2,segment[1]-segment[0],0))
              # stop when our field of view is full
              if view_mask.trivial(): break
         # TODO: figure out how to calculate change
