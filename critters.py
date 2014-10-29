@@ -229,6 +229,7 @@ class Critter(PhysicalObject):
         self.whats_under = set()
         self.age = 0
         self.hardness = 0.5
+        self.secreting = None
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -273,7 +274,7 @@ class Critter(PhysicalObject):
     max_speed = 1.5
     def act(self,cmd):
         if self.dead: return
-        if randrange(0,2) == 0:
+        if self.secreting and randrange(0,2) == 0:
             Secretion(self.world,self.location)
         sharpest_turn = 0.2
         if not cmd is None:
@@ -299,6 +300,11 @@ class Critter(PhysicalObject):
                         break
             elif word[0] == "Pass":
                 pass
+            elif word[0] == "Secrete":
+                if word[1] == "Nothing" or word[1] == "0":
+                    self.secreting = None
+                else:
+                    self.secreting = int(word[1])
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
