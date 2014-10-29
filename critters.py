@@ -332,7 +332,7 @@ class Critter(PhysicalObject):
     def sight(self):
         objects = []
         forward = self.heading.phi
-        for o in self.world.neighbors[self]:
+        for o in self.world.neighbors_of(self):
             if o != self:
                d = self.displacement_to(o)
                # We can only see things above our horizon, which we aproximate be saying they have
@@ -443,6 +443,9 @@ class Pit(PhysicalObject):
 class World:
     height = 100
     width  = 200
+    neighborhood_refresh = 4
+    neighborhood_radius_x = width/6 +Critter.max_speed*neighborhood_refresh
+    neighborhood_radius_y = height/6+Critter.max_speed*neighborhood_refresh
     def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0):
         self.critters = []
         self.starting_critters = []
@@ -452,7 +455,7 @@ class World:
         self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
         self.sounds = []
         self.clock = 0
-        self.neighbors = None
+        self.neighbors = {}
         self.tick_time = tick_time
         self.tick_limit = tick_limit
         self.warn = warn
@@ -471,10 +474,18 @@ class World:
         return self.physical_objects() + self.sounds
     def sound(self,loc,volume,text):
         self.sounds.append(Sound(self,loc,volume,text))
+    def find_neighbors(self,c):
+        self.neighbors[c] = set()
+        others = set(self.physical_objects())
+        others.remove(c)
+        for o in others:
+            disp = c.displacement_to(o)
+            if (disp.x/self.neighborhood_radius_x)**2 + (disp.y/self.neighborhood_radius_y)**2 < 1:
+                self.neighbors[c].add(o)
+    def neighbors_of(self,c):
+        if not c in self.neighbors: self.find_neighbors(c)
+        return self.neighbors[c]
     def run(self):
-        neighborhood_refresh = 4
-        neighborhood_radius_x = self.width/6 +Critter.max_speed*neighborhood_refresh
-        neighborhood_radius_y = self.height/6+Critter.max_speed*neighborhood_refresh
         stop_count = len(self.starting_critters) and math.log(math.e*len(self.starting_critters))
         while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) >= stop_count:
             loop_start = time.time()
@@ -482,19 +493,12 @@ class World:
             self.lighting = sorted([0,2*math.cos(self.clock/100),1])[1]
             self.sounds   = [s for s in self.sounds if not s.faded]
             self.food     = [f for f in self.food if f.value > 0]
+            self.zombies += [c for c in self.critters if c.dead]
             self.critters = [c for c in self.critters if not c.dead]
             Secretion.on_tick()
             shuffle(self.critters)
-            if self.clock % neighborhood_refresh == 0 or not self.neighbors:
+            if self.clock % self.neighborhood_refresh == 0:
                 self.neighbors = {}
-                for c in self.critters+self.blocks:
-                    self.neighbors[c] = set()
-                    others = set(self.physical_objects())
-                    others.remove(c)
-                    for o in others:
-                        disp = c.displacement_to(o)
-                        if (disp.x/neighborhood_radius_x)**2 + (disp.y/neighborhood_radius_y)**2 < 1:
-                            self.neighbors[c].add(o)
             for c in self.display_objects():
                 c.on_tick()
             checked = {}
@@ -503,7 +507,7 @@ class World:
                 c_outline = c.outline()
                 c_polygon = Polygon(c_outline)
                 core_radius = c.core_radius()
-                for o in self.neighbors[c]:
+                for o in self.neighbors_of(c):
                     if not checked.get(o,False):
                         d = c.distance_to(o)
                         if d >= c.radius() + o.radius():
