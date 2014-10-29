@@ -305,6 +305,8 @@ class Critter(PhysicalObject):
                     self.secreting = None
                 else:
                     self.secreting = int(word[1])
+            elif word[0] == "Say":
+                self.say(cmd[4:])
             else:
                 print("Unknown command: {}".format(cmd))
     def radius(self):
