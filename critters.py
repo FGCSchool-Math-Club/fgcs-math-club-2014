@@ -334,7 +334,7 @@ class Critter(PhysicalObject):
         return {
             'sight':   self.sight(), # set of tuples: (color,distance,direction,width,change)
             'smell':   set(), # set of tuples: (smell,strength,change)
-            'hearing': set([Critter.Sound(s.text,self.relative_heading_to(s),1,s.age) for s in self.world.sounds]),
+            'hearing': set([Critter.Sound(s.text,self.relative_heading_to(s),s.volume/(1+self.distance_to(s)),s.age) for s in self.world.sounds]),
             'taste':   set([type(x) for x in self.whats_under]),
             'body':    Critter.State(self.heading.rho>0.1,self.heading.rho,self.mass,self.age),
             'gps':     self.location,
