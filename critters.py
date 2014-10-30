@@ -236,19 +236,19 @@ class Critter(PhysicalObject):
         self.brain.dump_status()
         print(self.location)
     def on_tick(self):
-        if not self.dead:
-            self.age += 1
-            for x in list(self.whats_under):
-                if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
-                    self.whats_under.remove(x)
-            self.sense_data = self.senses()
-            self.mass -= 0.01 + 0.1*self.heading.rho
-            if self.mass <= 0:
-                self.die(sound="..nnn...nnn..nnn...",volume=6)
-            else:
-                self.act(self.brain_on_tick() or "Pass")
-                self.location.translate(self.heading.x,self.heading.y)
-                self.location = self.world.wrap(self.location)
+        if self.dead: return
+        if not self.undead(): self.age += 1
+        for x in list(self.whats_under):
+            if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
+                self.whats_under.remove(x)
+        self.sense_data = self.senses()
+        if not self.undead(): self.mass -= 0.01 + 0.1*self.heading.rho
+        if self.mass <= 0:
+            self.die(sound="..nnn...nnn..nnn...",volume=6)
+        else:
+            self.act(self.brain_on_tick() or "Pass")
+            self.location.translate(self.heading.x,self.heading.y)
+            self.location = self.world.wrap(self.location)
     def on_damage(self,amount):
         if amount > 0.1:
             self.say("Ooof!")
@@ -266,6 +266,15 @@ class Critter(PhysicalObject):
         if not self.dead:
             self.say(sound,volume=volume)
             PhysicalObject.die(self)
+    def arise(self):
+        if self.dead:
+            self.dead = None
+            self.mass = 15
+            self.color["outline"] = "green"
+            self.color["width"] = 2
+            self.brain = ZombieBrain()
+    def undead(self):
+        return (self.dead is not True) and (self.dead is not False)
     def say(self,msg,volume=10):
         if not self.dead:
             if self.world.clock - self.last_spoke > 10:
@@ -414,6 +423,20 @@ class CritterBrain:
     def on_tick(self,senses):
         pass
 
+class ZombieBrain(CritterBrain):
+    def on_tick(self,senses):
+        non_green = [c for c in senses['sight'] if c.color != 'green']
+        closest = min(non_green, key=lambda s: s.distance) if non_green else None
+        target  = closest.direction if closest else uniform(-0.2,0.1) if senses['compass'] > math.pi else uniform(-0.1,0.2)
+        if randrange(0,50) == 0:
+            return "Say Brains...."
+        elif randrange(0,50) == 0:
+            return "Say Urrrr...."
+        elif senses['body'].speed > 0.2:
+            return "Accelerate {}".format(0.1/senses['body'].speed)
+        else:
+            return "Turn {}".format(target)
+
 class Food(PhysicalObject):
     def __init__(self,world,loc,value):
         PhysicalObject.__init__(self,world,loc)
@@ -462,6 +485,7 @@ class World:
         self.tick_time = tick_time
         self.tick_limit = tick_limit
         self.warn = warn
+        self.zombies = []
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -490,7 +514,7 @@ class World:
         return self.neighbors[c]
     def run(self):
         stop_count = len(self.starting_critters) and math.log(math.e*len(self.starting_critters))
-        while self.world_view.window_open and self.clock != self.tick_limit and len(self.critters) >= stop_count:
+        while self.world_view.window_open and self.clock != self.tick_limit and len([c for c in self.critters if c.dead == False]) >= stop_count:
             loop_start = time.time()
             self.clock += 1
             self.lighting = sorted([0,2*math.cos(self.clock/100),1])[1]
@@ -498,6 +522,11 @@ class World:
             self.food     = [f for f in self.food if f.value > 0]
             self.zombies += [c for c in self.critters if c.dead]
             self.critters = [c for c in self.critters if not c.dead]
+            if self.lighting == 0:
+                for c in self.zombies:
+                    c.arise()
+                    self.critters.append(c)
+                self.zombies = []
             Secretion.on_tick()
             shuffle(self.critters)
             if self.clock % self.neighborhood_refresh == 0:
@@ -554,7 +583,7 @@ class World:
         print("Critters at start:  ",len(self.starting_critters))
         print("Critters remaining: ",len(self.critters))
         for c in sorted(self.starting_critters,key=lambda c: (c.age,c.mass),reverse=True):
-            print("    %5s %6s  %5.1f" % (c.name,["alive","%5.2f" % (c.age*self.tick_time)][c.dead],c.mass))
+            print("    %5s %6s  %5.1f" % (c.name,{False:"alive",True:"%5.2f" % (c.age*self.tick_time),None:"Undead"}[c.dead],c.mass))
 
 class WorldView:
     def __init__(self,world,scale):
