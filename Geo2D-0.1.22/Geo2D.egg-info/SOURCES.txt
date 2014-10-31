@@ -1,0 +1,16 @@
+CHANGES.txt
+LICENSE.txt
+MANIFEST.in
+README.txt
+setup.cfg
+setup.py
+Geo2D.egg-info/PKG-INFO
+Geo2D.egg-info/SOURCES.txt
+Geo2D.egg-info/dependency_links.txt
+Geo2D.egg-info/top_level.txt
+geo2d/__init__.py
+geo2d/geo2d_utils.py
+geo2d/geometry.py
+geo2d/test/__init__.py
+geo2d/test/test_geometry.py
+geo2d/test/test_utils.py

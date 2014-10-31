@@ -1,0 +1,26 @@
+v0.1.22, 24 Mar 2014:
+-- FBugs: 'rotate' had inconsistent default type ('radians', 'degrees')
+-- FBugs: 'Line' (and derived) were thworing errors when trying to use 'rotate'
+   on them
+
+v0.1.21, 13 Aug 2013:
+-- Added centroid (of type Point) to the Polygon class
+-- rebuilt the documentation and made a new layout... learning
+-- TODO: add examples and write test for the code
+
+v0.1.11, 11 Aug 2013:
+-- Created launchpad project (http://launchpad.net/geo2d)
+-- Even more user friendly documentation + hosted on PyPi sphinx documentation
+   page (http://pythonhosted.org/Geo2D/)
+-- TODO: add examples in the documentation about usage
+
+v0.1.1, 11 Aug 2013:
+-- Made sure is Python >= 2.7 compatible
+-- Minor fixes
+-- Regenerated the HTML documentation
+
+v0.1.02, 11 Aug 2013 -- Fix README.txt
+
+v0.1.01, 11 Aug 2013 -- Fix README.txt
+
+v0.1.0, 10 Aug 2013 -- Initial release.
