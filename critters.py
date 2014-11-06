@@ -695,8 +695,11 @@ def show_stats():
     global w
     w.print_stats()
 
-if True:
-    [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
-else:
-    [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c+1)]
+for i in range(1,cmd.c+1):
+    c = Critter(w,Brains.available[i % len(Brains.available)],i)
+    c.heading = Heading(0)
+    c.location = Point(10,(i+0.5)*w.height/(cmd.c+1))
+
+# [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
+# [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c+1)]
 w.run()
