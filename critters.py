@@ -246,7 +246,7 @@ class Critter(PhysicalObject):
             if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
                 self.whats_under.remove(x)
         self.sense_data = self.senses()
-        self.mass -= self.metabolic_cost + self.movement_cost*self.heading.rho
+        self.mass -= self.metabolic_cost + self.movement_cost*self.heading.rho*self.heading.rho
         if self.mass <= 0:
             self.die(sound="..nnn...nnn..nnn...",volume=6)
         else:
