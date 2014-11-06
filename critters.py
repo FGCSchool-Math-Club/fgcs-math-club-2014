@@ -140,12 +140,12 @@ class PhysicalObject(DisplayObject):
             self.remove_image(canvas)
 
 class Block(PhysicalObject):
-    def __init__(self,world,loc,l=10,w=1):
+    def __init__(self,world,loc,l=10,w=1,heading=None,density=1):
         PhysicalObject.__init__(self,world,loc)
-        self.heading = Heading(uniform(0.0,2*math.pi))*0.0001
+        self.heading = heading or Heading(uniform(0.0,2*math.pi))*0.0001
         self.length = l
         self.width  = w
-        self.mass   = l*w
+        self.mass   = l*w*density
         self.color  = {"fill":"brown", "stipple":'gray75'}
         self.hardness = 1.0
     def outline(self):
