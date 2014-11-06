@@ -572,13 +572,13 @@ class World:
         v = a.heading - b.heading
         impact = d.dot(v)**2
         for x,s in [[a,+1],[b,-1]]:
-            relative_mass = x.mass/(a.mass+b.mass)
+            relative_mass = 1.0 - x.mass/(a.mass+b.mass)
             other_hardness = (a.hardness+b.hardness)-x.hardness
-            x.heading = Heading(x.heading.phi+s*((d-v*relative_mass*0.1).phi-d.phi),rho=x.heading.rho)
+            x.heading = Heading(x.heading.phi+s*((d-v*0.1*relative_mass).phi-d.phi),rho=x.heading.rho)
             if isinstance(a,Food) or isinstance(b,Food):
                 pass
             else:
-                x.location = self.wrap(Point(Vector(x.location)+d*(1+abs(v.dot(d)))*s*(1.0-relative_mass)))
+                x.location = self.wrap(Point(Vector(x.location)+d*(1+abs(v.dot(d)))*s*relative_mass))
             x.on_damage(impact*0.1*(1.0-relative_mass)*other_hardness/x.hardness)
         a.on_collision(-d,b)
         b.on_collision( d,a)
