@@ -670,11 +670,6 @@ Critter.movement_cost  = cmd.movement_cost
 import atexit
 import glob,re
 
-@atexit.register
-def show_stats():
-    global w
-    w.print_stats()
-
 
 for file in cmd.files or glob.glob("*_brains.py"):
     match = re.search('^(.+)_brains.py$', file)
@@ -686,6 +681,12 @@ for file in cmd.files or glob.glob("*_brains.py"):
             traceback.print_exception(*sys.exc_info(),limit=1)
 
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w,zombies=cmd.z)
+
+@atexit.register
+def show_stats():
+    global w
+    w.print_stats()
+
 if True:
     [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 else:
