@@ -488,6 +488,8 @@ class World:
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
         self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
+        self.blocks.append(Block(self,Point(self.width-15,10),1,self.height,Heading(0),100))
+        self.blocks[-1].goal = True
         self.sounds = []
         self.clock = 0
         self.neighbors = {}
@@ -512,7 +514,7 @@ class World:
     def sound(self,loc,volume,text):
         self.sounds.append(Sound(self,loc,volume,text))
     def find_neighbors(self,c):
-        self.neighbors[c] = set()
+        self.neighbors[c] = set([self.blocks[-1]])
         others = set(self.physical_objects())
         others.remove(c)
         for o in others:
