@@ -235,6 +235,8 @@ class Critter(PhysicalObject):
         print(self.name)
         self.brain.dump_status()
         print(self.location)
+    metabolic_cost = 0.01
+    movement_cost  = 0.1
     def on_tick(self):
         if self.dead: return
         if not self.undead(): self.age += 1
@@ -242,7 +244,7 @@ class Critter(PhysicalObject):
             if x.radius() <= 0 or self.distance_to(x) > self.radius() + x.radius():
                 self.whats_under.remove(x)
         self.sense_data = self.senses()
-        if not self.undead(): self.mass -= 0.01 + 0.1*self.heading.rho
+        self.mass -= self.metabolic_cost + self.movement_cost*self.heading.rho
         if self.mass <= 0:
             self.die(sound="..nnn...nnn..nnn...",volume=6)
         else:
@@ -270,6 +272,8 @@ class Critter(PhysicalObject):
         if self.dead:
             self.dead = None
             self.mass = 15
+            self.metabolic_cost = 0.0
+            self.movement_cost  = 0.0
             self.color["outline"] = "green"
             self.color["width"] = 2
             self.brain = ZombieBrain()
@@ -653,9 +657,15 @@ parser.add_argument('-p', default=  0, type=int)
 parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
 parser.add_argument('-z', default=False, action='store_true')
+parser.add_argument('--metabolic_cost', default = 0.01, type=float)
+parser.add_argument('--movement_cost',  default = 0.1,  type=float)
 parser.add_argument('files', nargs=argparse.REMAINDER)
 
 cmd = parser.parse_args()
+
+Critter.metabolic_cost = cmd.metabolic_cost
+Critter.movement_cost  = cmd.movement_cost
+
 
 import atexit
 import glob,re
