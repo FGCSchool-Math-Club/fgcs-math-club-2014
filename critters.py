@@ -472,7 +472,7 @@ class World:
     neighborhood_refresh = 4
     neighborhood_radius_x = width/6 +Critter.max_speed*neighborhood_refresh
     neighborhood_radius_y = height/6+Critter.max_speed*neighborhood_refresh
-    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0,zombies=False):
         self.critters = []
         self.starting_critters = []
         self.world_view = WorldView(self,5)
@@ -485,6 +485,7 @@ class World:
         self.tick_time = tick_time
         self.tick_limit = tick_limit
         self.warn = warn
+        self.zombies_allowed = zombies
         self.zombies = []
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
@@ -520,7 +521,8 @@ class World:
             self.lighting = sorted([0,2*math.cos(self.clock/100),1])[1]
             self.sounds   = [s for s in self.sounds if not s.faded]
             self.food     = [f for f in self.food if f.value > 0]
-            self.zombies += [c for c in self.critters if c.dead]
+            if self.zombies_allowed:
+                self.zombies += [c for c in self.critters if c.dead]
             self.critters = [c for c in self.critters if not c.dead]
             if self.lighting == 0:
                 for c in self.zombies:
@@ -650,6 +652,7 @@ parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
 parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
+parser.add_argument('-z', default=False, action='store_true')
 parser.add_argument('files', nargs=argparse.REMAINDER)
 
 cmd = parser.parse_args()
@@ -672,7 +675,7 @@ for file in cmd.files or glob.glob("*_brains.py"):
         except Exception as e:
             traceback.print_exception(*sys.exc_info(),limit=1)
 
-w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w)
+w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w,zombies=cmd.z)
 if True:
     [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 else:
