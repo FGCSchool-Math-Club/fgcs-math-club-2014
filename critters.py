@@ -691,6 +691,10 @@ for file in cmd.files or glob.glob("*_brains.py"):
         except Exception as e:
             traceback.print_exception(*sys.exc_info(),limit=1)
 
+if not Brains.available:
+    print("No brains available!")
+    exit()
+
 w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w,zombies=cmd.z)
 
 @atexit.register
