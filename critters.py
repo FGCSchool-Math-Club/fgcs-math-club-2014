@@ -648,13 +648,15 @@ class Users:
 class Brains:
     registered = {}
     available = []
+    codes = None
     def register(brain_class):
         u = Users.current
-        if not u in Brains.registered.keys():
-            Brains.registered[u] = []
-        Brains.registered[u].append(brain_class)
-        Brains.available.append(brain_class)
-        brain_class.owner = Users.initial
+        if (not Brains.codes) or (brain_class.code == Brains.codes):
+            if not u in Brains.registered.keys():
+                Brains.registered[u] = []
+            Brains.registered[u].append(brain_class)
+            Brains.available.append(brain_class)
+            brain_class.owner = Users.initial
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', default=0.1, type=float)
@@ -667,13 +669,14 @@ parser.add_argument('-w', default=False, action='store_true')
 parser.add_argument('-z', default=False, action='store_true')
 parser.add_argument('--metabolic_cost', default = 0.01, type=float)
 parser.add_argument('--movement_cost',  default = 0.1,  type=float)
+parser.add_argument('--codes')
 parser.add_argument('files', nargs=argparse.REMAINDER)
 
 cmd = parser.parse_args()
 
 Critter.metabolic_cost = cmd.metabolic_cost
 Critter.movement_cost  = cmd.movement_cost
-
+Brains.codes = cmd.codes
 
 import atexit
 import glob,re
