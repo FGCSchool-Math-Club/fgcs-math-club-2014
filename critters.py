@@ -237,8 +237,9 @@ class Critter(PhysicalObject):
         print(self.name)
         self.brain.dump_status()
         print(self.location)
-    metabolic_cost = 0.01
-    movement_cost  = 0.1
+    metabolic_cost    = 0.01
+    movement_cost     = 0.1
+    acceleration_cost = 40
     def on_tick(self):
         if self.dead: return
         if not self.undead(): self.age += 1
@@ -289,7 +290,7 @@ class Critter(PhysicalObject):
             if self.world.clock - self.last_spoke > 10:
                 self.world.sound(self.location,volume,msg)
                 self.last_spoke = self.world.clock
-    max_speed = 1.5
+    max_speed = 2.5
     def act(self,cmd):
         if self.dead: return
         if self.secreting and randrange(0,2) == 0:
@@ -304,9 +305,14 @@ class Critter(PhysicalObject):
             elif word[0] == "Turn":
                 self.heading = Heading(self.heading.phi+sorted([-sharpest_turn,float(word[1]),sharpest_turn])[1],rho=self.heading.rho)
             elif word[0] == "Accelerate":
+                initial_speed = self.heading.rho
                 self.heading *= float(word[1])
                 if self.heading.rho > self.max_speed:
                     self.heading *= self.max_speed/self.heading.rho
+                #if self.heading.rho != initial_speed:
+                #    print("%s lost %5.3f accelerating %5.3f -> %5.3f" %
+                #        (self.name,self.acceleration_cost*(self.heading.rho-initial_speed)**2,initial_speed,self.heading.rho))
+                self.mass -= self.acceleration_cost*(self.heading.rho-initial_speed)**2
             elif word[0] == "Attack":
                 pass
             elif word[0] == "Eat":
@@ -670,15 +676,17 @@ parser.add_argument('-p', default=  0, type=int)
 parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
 parser.add_argument('-z', default=False, action='store_true')
-parser.add_argument('--metabolic_cost', default = 0.01, type=float)
-parser.add_argument('--movement_cost',  default = 0.1,  type=float)
+parser.add_argument('--metabolic_cost',     default = 0.01, type=float)
+parser.add_argument('--movement_cost',      default = 0.1,  type=float)
+parser.add_argument('--acceleration_cost',  default = 40,   type=float)
 parser.add_argument('--codes')
 parser.add_argument('files', nargs=argparse.REMAINDER)
 
 cmd = parser.parse_args()
 
-Critter.metabolic_cost = cmd.metabolic_cost
-Critter.movement_cost  = cmd.movement_cost
+Critter.metabolic_cost     = cmd.metabolic_cost
+Critter.movement_cost      = cmd.movement_cost
+Critter.acceleration_cost  = cmd.acceleration_cost
 Brains.codes = cmd.codes
 
 import atexit
