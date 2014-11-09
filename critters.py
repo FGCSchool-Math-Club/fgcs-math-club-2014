@@ -488,8 +488,11 @@ class World:
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
         self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
-        self.blocks.append(Block(self,Point(self.width-15,10),1,self.height,Heading(0),100))
-        self.blocks[-1].goal = True
+        fl_segments = 10
+        fl_height = self.height / fl_segments
+        for i in range(0,fl_segments):
+            self.blocks.append(Block(self,Point(self.width-15,(i+0.5)*fl_height),1,fl_height/2-0.1,Heading(0),100))
+            self.blocks[-1].goal = True
         self.sounds = []
         self.clock = 0
         self.neighbors = {}
