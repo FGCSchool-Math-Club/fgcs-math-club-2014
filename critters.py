@@ -487,7 +487,7 @@ class World:
     neighborhood_refresh = 4
     neighborhood_radius_x = width/6 +Critter.max_speed*neighborhood_refresh
     neighborhood_radius_y = height/6+Critter.max_speed*neighborhood_refresh
-    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0,zombies=False):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0,zombies=False,stop_count=None):
         self.critters = []
         self.starting_critters = []
         self.world_view = WorldView(self,5)
@@ -507,6 +507,7 @@ class World:
         self.warn = warn
         self.zombies_allowed = zombies
         self.zombies = []
+        self.stop_count = stop_count
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
@@ -534,7 +535,7 @@ class World:
         if not c in self.neighbors: self.find_neighbors(c)
         return self.neighbors[c]
     def run(self):
-        stop_count = len(self.starting_critters) and math.log(math.e*len(self.starting_critters))
+        stop_count = self.stop_count or len(self.starting_critters) and math.log(math.e*len(self.starting_critters))
         while self.world_view.window_open and self.clock != self.tick_limit and len([c for c in self.critters if c.dead == False]) >= stop_count:
             loop_start = time.time()
             self.clock += 1
@@ -679,6 +680,7 @@ parser.add_argument('-z', default=False, action='store_true')
 parser.add_argument('--metabolic_cost',     default = 0.01, type=float)
 parser.add_argument('--movement_cost',      default = 0.1,  type=float)
 parser.add_argument('--acceleration_cost',  default = 40,   type=float)
+parser.add_argument('--stop_count',         default = None, type=int)
 parser.add_argument('--codes')
 parser.add_argument('files', nargs=argparse.REMAINDER)
 
@@ -706,7 +708,16 @@ if not Brains.available:
     print("No brains available!")
     exit()
 
-w = World(tick_time=cmd.t,tick_limit=cmd.n,food=cmd.f,pits=cmd.p,blocks=cmd.b,warn=cmd.w,zombies=cmd.z)
+w = World(
+    tick_time  = cmd.t,
+    tick_limit = cmd.n,
+    food       = cmd.f,
+    pits       = cmd.p,
+    blocks     = cmd.b,
+    warn       = cmd.w,
+    zombies    = cmd.z,
+    stop_count = cmd.stop_count
+    )
 
 @atexit.register
 def show_stats():
