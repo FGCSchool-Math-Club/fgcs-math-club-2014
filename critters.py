@@ -731,4 +731,7 @@ for i in range(1,cmd.c+1):
 
 # [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 # [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c+1)]
-w.run()
+try:
+    w.run()
+except KeyboardInterrupt:
+    pass
