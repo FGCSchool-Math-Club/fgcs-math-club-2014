@@ -231,7 +231,7 @@ class Critter(PhysicalObject):
         self.age = 0
         self.hardness = 0.5
         self.secreting = None
-        self.won = False
+        self.finished = False
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -263,7 +263,7 @@ class Critter(PhysicalObject):
     def on_collision(self,dir,other):
         if other.goal:
             self.die("Yes!")
-            self.won = self.age
+            self.finished = self.age
         self.whats_under.add(other)
         self.act(self.brain_on_collision(dir,other) or ("Eat" if isinstance(other,Food) else "Pass"))
     def teleport_to(self,world,loc):
@@ -605,9 +605,9 @@ class World:
         print("Brains available:   ",len(Brains.available))
         print("Critters at start:  ",len(self.starting_critters))
         print("Critters remaining: ",len(self.critters))
-        for c in sorted(self.starting_critters,key=lambda c: (-(c.won or self.clock),c.age,c.mass),reverse=True):
-            status = ("won at %5.1f" % c.won) if c.won else {False:"alive",True:"%5.2f" % (c.age*self.tick_time),None:"Undead"}[c.dead]
-            print("    %5s %16s  %5.1f" % (c.name,status,c.mass))
+        for c in sorted(self.starting_critters,key=lambda c: (-(c.finished or self.clock),c.age,c.mass),reverse=True):
+            status = ("finished at %5.2f" % (c.finished*self.tick_time)) if c.finished else {False:"alive",True:"%5.2f" % (c.age*self.tick_time),None:"Undead"}[c.dead]
+            print("    %5s %20s %5.1f" % (c.name,status,c.mass))
 
 class WorldView:
     def __init__(self,world,scale):
