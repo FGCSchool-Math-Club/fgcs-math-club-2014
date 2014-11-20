@@ -1,6 +1,6 @@
 #
 # Brains for Team Radon --
-#     Only Sam or   Ulee  should edit this file!
+#     Only Sam and   Ulee  should edit this file!
 #
 from geo2d.geometry import *
 
