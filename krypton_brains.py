@@ -78,3 +78,20 @@ class TastingBrain(CritterBrain):
             return "Turn {}".format(turn)
 Brains.register(TastingBrain)
 
+
+
+class RacerBrain(CritterBrain):
+    code = "R"
+    max_speed = 2.0
+    max_acceleration = 1.05
+    def on_collision(self,dir,other,senses):
+        pass
+    def on_attack(self,dir,attacker,senses):
+        pass
+    def on_tick(self,senses):
+        acceleration = self.max_speed/senses['body'].speed
+        if acceleration > self.max_acceleration:
+            acceleration = self.max_acceleration
+        return "Accelerate {}".format(acceleration)
+
+Brains.register(RacerBrain)
