@@ -1,6 +1,6 @@
 #
 # Brains for Team Neon --
-#     Only Elanor and Dakota should edit this file!
+#     Only Elanor, Tommy and Dakota should edit this file!
 #
 from geo2d.geometry import *
 
