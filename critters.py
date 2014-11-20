@@ -539,7 +539,7 @@ class World:
         while self.world_view.window_open and self.clock != self.tick_limit and len([c for c in self.critters if c.dead == False]) >= stop_count:
             loop_start = time.time()
             self.clock += 1
-            self.lighting = sorted([0,2*math.cos(self.clock/100),1])[1]
+            self.lighting = sorted([0,2*math.cos(self.clock/1000),1])[1]
             self.sounds   = [s for s in self.sounds if not s.faded]
             self.food     = [f for f in self.food if f.value > 0]
             if self.zombies_allowed:
