@@ -93,6 +93,6 @@ class RacerBrain(CritterBrain):
         if acceleration > self.max_acceleration:
             acceleration = self.max_acceleration
         return "Accelerate {}".format(acceleration)
-
+kill
 Brains.register(RacerBrain)
 
