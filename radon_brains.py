@@ -90,7 +90,7 @@ class RacerBrain(CritterBrain):
     max_speed = 1.4000
     
     
-    max_acceleration = 1.317
+    max_acceleration = 1.0167
     def on_collision(self,dir,other,senses):
         pass
     def on_attack(self,dir,attacker,senses):
