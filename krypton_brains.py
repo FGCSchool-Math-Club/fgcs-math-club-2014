@@ -89,6 +89,8 @@ class RacerBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
+        if randrange(0,100) == 0:
+            return "Turn 0.01"
         acceleration = self.max_speed/senses['body'].speed
         if acceleration > self.max_acceleration:
             acceleration = self.max_acceleration
