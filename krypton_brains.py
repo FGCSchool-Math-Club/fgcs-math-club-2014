@@ -82,8 +82,8 @@ Brains.register(TastingBrain)
 
 class RacerBrain(CritterBrain):
     code = "R"
-    max_speed = 1.1
-    max_acceleration = 1.1
+    max_speed = 1.4
+        max_acceleration = 1.4
     def on_collision(self,dir,other,senses):
         pass
     def on_attack(self,dir,attacker,senses):
@@ -95,3 +95,4 @@ class RacerBrain(CritterBrain):
         return "Accelerate {}".format(acceleration)
 
 Brains.register(RacerBrain)
+
