@@ -111,6 +111,8 @@ class PhysicalObject(DisplayObject):
         self.hardness = 0.01
         self.dead = False
         self.goal = False
+        self.anchored = False
+        self.floor_mat = False
     def dump_status(self):
         print(self.location)
     def on_collision(self,dir,other):
@@ -149,6 +151,7 @@ class Block(PhysicalObject):
         self.mass   = l*w*density
         self.color  = {"fill":"brown", "stipple":'gray75'}
         self.hardness = 1.0
+        self.anchored = True
     def outline(self):
         loc = self.location
         h = self.heading.normalized
@@ -457,6 +460,8 @@ class Food(PhysicalObject):
         PhysicalObject.__init__(self,world,loc)
         self.value = value
         self.color = {"fill": "dark green", "outline": "green", "width":3}
+        self.anchored = True
+        self.floor_mat = True
     def on_tick(self):
         # Could spoil, spread, or...?
         pass
@@ -473,6 +478,7 @@ class Pit(PhysicalObject):
         #world.sound(self.location,5,"Aaha!")
         self.r = 10
         self.color = {"fill": "black", "outline": "dark red"}
+        self.anchored = True
     def on_tick(self):
         pass
     def on_collision(self,dir,other):
@@ -509,7 +515,7 @@ class World:
         fl_segments = 10
         fl_height = self.height / fl_segments
         for i in range(0,fl_segments):
-            self.blocks.append(Block(self,Point(self.width-15,(i+0.5)*fl_height),1,fl_height/2-0.1,Heading(0),100))
+            self.blocks.append(Block(self,Point(self.width-15,(i+0.5)*fl_height),1,fl_height/2-0.1,Heading(0),10000))
             self.blocks[-1].goal = True
     def maze(self,h,w):
         walls = set([(x,y) for x in range(0,2*w) for y in range(0,2*h) if odd(x) != odd(y)])
@@ -610,15 +616,13 @@ class World:
         d = b.displacement_to(a).normalized
         v = a.heading - b.heading
         impact = d.dot(v)**2
-        for x,s in [[a,+1],[b,-1]]:
-            relative_mass = 1.0 - x.mass/(a.mass+b.mass)
-            other_hardness = (a.hardness+b.hardness)-x.hardness
-            x.heading = Heading(x.heading.phi+s*((d-v*0.1*relative_mass).phi-d.phi),rho=x.heading.rho)
-            if isinstance(a,Food) or isinstance(b,Food):
-                pass
-            else:
-                x.location = self.wrap(Point(Vector(x.location)+d*(1+abs(v.dot(d)))*s*relative_mass))
-            x.on_damage(impact*0.1*(1.0-relative_mass)*other_hardness/x.hardness)
+        for x,other,s in [[a,b,+1],[b,a,-1]]:
+            if not other.floor_mat:
+                relative_mass = 1.0 - (0.0 if other.anchored else x.mass/(a.mass+b.mass))
+                if not x.anchored:
+                    x.heading = Heading(x.heading.phi+s*((d-v*0.1*relative_mass).phi-d.phi),rho=x.heading.rho)
+                    x.location = self.wrap(Point(Vector(x.location)+d*(1+abs(v.dot(d)))*s*relative_mass))
+                x.on_damage(impact*0.1*relative_mass*other.hardness/x.hardness)
         a.on_collision(-d,b)
         b.on_collision( d,a)
     def wrap(self,p):
