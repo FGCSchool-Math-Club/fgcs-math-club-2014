@@ -5,7 +5,7 @@ from geo2d.geometry import *
 import itertools
 from tkinter import *
 import time
-from intervalset import AngularIntervalSet
+from intervalset import AngularIntervalSet,odd
 import sys,traceback
 from collections import namedtuple
 
@@ -494,11 +494,8 @@ class World:
         self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
         self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
         self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
-        fl_segments = 10
-        fl_height = self.height / fl_segments
-        for i in range(0,fl_segments):
-            self.blocks.append(Block(self,Point(self.width-15,(i+0.5)*fl_height),1,fl_height/2-0.1,Heading(0),100))
-            self.blocks[-1].goal = True
+        #self.finish_line()
+        self.maze(6,12)
         self.sounds = []
         self.clock = 0
         self.neighbors = {}
@@ -508,6 +505,36 @@ class World:
         self.zombies_allowed = zombies
         self.zombies = []
         self.stop_count = stop_count
+    def finish_line(self):
+        fl_segments = 10
+        fl_height = self.height / fl_segments
+        for i in range(0,fl_segments):
+            self.blocks.append(Block(self,Point(self.width-15,(i+0.5)*fl_height),1,fl_height/2-0.1,Heading(0),100))
+            self.blocks[-1].goal = True
+    def maze(self,h,w):
+        walls = set([(x,y) for x in range(0,2*w) for y in range(0,2*h) if odd(x) != odd(y)])
+        cells = set([(0,0)])
+        while len(cells) < h*w:
+            x,y = (2*randrange(0,w),2*randrange(0,h))
+            dir = randrange(0,2)
+            dist = 4*randrange(0,2)-2
+            x0,y0 = ((x+dir*dist) % (2*w),(y+(1-dir)*dist) % (2*h))
+            if ((x0,y0) in cells) != ((x,y) in cells):
+                cells.add((x0,y0) if (x,y) in cells else (x,y))
+                print((x,y),(x0,y0))
+                if dist < 0:
+                    walls.remove((x0-(dir*dist)//2,y0-((1-dir)*dist)//2))
+                else:
+                    walls.remove((x +(dir*dist)//2,y +((1-dir)*dist)//2))
+        cell_w = self.width/(2*w)
+        cell_h = self.height/(2*h)
+        for x,y in walls:
+            p = Point((x+0.5)*cell_w,(y+0.5)*cell_h)
+            if odd(x):
+                b = Block(self,p,2,cell_h+2,Heading(0),1000)
+            else:
+                b = Block(self,p,cell_w+2,2,Heading(0),1000)
+            self.blocks.append(b)
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
