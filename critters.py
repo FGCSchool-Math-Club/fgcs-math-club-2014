@@ -527,7 +527,7 @@ class World:
             x0,y0 = ((x+dir*dist) % (2*w),(y+(1-dir)*dist) % (2*h))
             if ((x0,y0) in cells) != ((x,y) in cells):
                 cells.add((x0,y0) if (x,y) in cells else (x,y))
-                print((x,y),(x0,y0))
+                #print((x,y),(x0,y0))
                 if dist < 0:
                     walls.remove((x0-(dir*dist)//2,y0-((1-dir)*dist)//2))
                 else:
