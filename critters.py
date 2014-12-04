@@ -594,21 +594,22 @@ class World:
             changes = []
             checked = {}
             for c in self.critters+self.blocks:
-                checked[c] = True
-                c_outline = c.outline()
-                c_polygon = Polygon(c_outline)
-                core_radius = c.core_radius()
-                for o in self.neighbors_of(c):
-                    if not checked.get(o,False):
-                        d = c.distance_to(o)
-                        if d >= c.radius() + o.radius():
-                            pass # they missed
-                        elif d < core_radius + o.core_radius():
-                            # solid hit
-                            self.process_collision(c,o,changes)
-                        elif overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
-                            # glancing blow
-                            self.process_collision(c,o,changes)
+                if not c.anchored:
+                    checked[c] = True
+                    c_outline = c.outline()
+                    c_polygon = Polygon(c_outline)
+                    core_radius = c.core_radius()
+                    for o in self.neighbors_of(c):
+                        if not checked.get(o,False):
+                            d = c.distance_to(o)
+                            if d >= c.radius() + o.radius():
+                                pass # they missed
+                            elif d < core_radius + o.core_radius():
+                                # solid hit
+                                self.process_collision(c,o,changes)
+                            elif overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
+                                # glancing blow
+                                self.process_collision(c,o,changes)
             for o,d_phi,d_loc in changes:
                 o.heading = Heading(o.heading.phi+d_phi,rho=o.heading.rho/2)
                 o.location = self.wrap(Point(Vector(o.location)+d_loc))
