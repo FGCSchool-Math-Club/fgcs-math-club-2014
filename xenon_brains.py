@@ -99,3 +99,44 @@ class RacerBrain(CritterBrain):
         return "Accelerate {}".format(acceleration)
 
 Brains.register(RacerBrain)
+class MazeBrain(CritterBrain):
+    code = "M"
+    def __init__(self):
+        CritterBrain.__init__(self)
+    def on_collision(self,dir,other,senses):
+        if isinstance(other,Food):
+          return "Eat"
+        else:
+          return "Turn {}".format(-dir.phi)
+    def on_attack(self,dir,attacker,senses):
+        pass
+    def on_tick(self,senses):
+        can_see = senses['sight']
+        moving = senses['body'].moving
+        closest = min(can_see, key=lambda s: s.distance)
+        visible_food = [x for x in can_see if x.color == 'green']
+        if len(visible_food) > 0:
+            closest_food = min(visible_food, key=lambda s: s.distance)
+        else:
+            closest_food = None
+        if closest.color == 'brown' and closest.distance < 10 and abs(closest.direction) < 0.5:
+            return "Turn 1.0"
+        elif closest_food:
+            if closest_food.distance < 5 and moving:
+               return "Accelerate 0.1"
+            elif closest_food.distance < 5 :
+                return "Eat"
+            elif not moving:
+                return "Accelerate 10.0"
+            else:
+                return "Turn {}".format(closest.direction)
+        elif senses['body'].speed < 1.0:
+            return "Accelerate 1.2"
+        elif closest.distance > 5:
+            return "Pass"
+        elif closest.direction > 0:
+            return "Turn -0.5"
+        else:
+            return "Turn 0.5"
+Brains.register(MazeBrain)
+
