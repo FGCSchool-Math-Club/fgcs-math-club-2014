@@ -536,12 +536,13 @@ class World:
         cell_w = self.width/(2*w)
         cell_h = self.height/(2*h)
         for x,y in walls:
-            p = Point((x+0.5)*cell_w,(y+0.5)*cell_h)
-            if odd(x):
-                b = Block(self,p,2,cell_h+2,Heading(0),1000)
-            else:
-                b = Block(self,p,cell_w+2,2,Heading(0),1000)
-            self.blocks.append(b)
+            for i in [-3,-1,1,3]:
+                if odd(x):
+                    p = Point((x+0.5)*cell_w,(y+0.5+i/4)*cell_h)
+                    self.blocks.append(Block(self,p,2,cell_h/4,Heading(0),1000))
+                else:
+                    p = Point((x+0.5+i/4)*cell_w,(y+0.5)*cell_h)
+                    self.blocks.append(Block(self,p,cell_w/4,2,Heading(0),1000))
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
     def spawn(self,critter):
