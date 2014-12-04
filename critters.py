@@ -589,6 +589,7 @@ class World:
                 self.neighbors = {}
             for c in self.display_objects():
                 c.on_tick()
+            changes = []
             checked = {}
             for c in self.critters+self.blocks:
                 checked[c] = True
@@ -602,17 +603,20 @@ class World:
                             pass # they missed
                         elif d < core_radius + o.core_radius():
                             # solid hit
-                            self.process_collision(c,o)
+                            self.process_collision(c,o,changes)
                         elif overlap(c_polygon,Polygon(o.outline()),c1=c.location,c2=o.location,r1=c.radius(),r2=o.radius()):
                             # glancing blow
-                            self.process_collision(c,o)
+                            self.process_collision(c,o,changes)
+            for o,d_phi,d_loc in changes:
+                o.heading = Heading(o.heading.phi+d_phi,rho=o.heading.rho/2)
+                o.location = self.wrap(Point(Vector(o.location)+d_loc))
             self.world_view.on_tick()
             excess_time = self.tick_time-(time.time()-loop_start)
             if excess_time > 0:
                 time.sleep(excess_time)
             elif self.warn:
                 print("Tick over time by ",-excess_time," seconds!")
-    def process_collision(self,a,b):
+    def process_collision(self,a,b,changes):
         d = b.displacement_to(a).normalized
         v = a.heading - b.heading
         impact = d.dot(v)**2
@@ -620,8 +624,7 @@ class World:
             if not other.floor_mat:
                 relative_mass = 1.0 - (0.0 if other.anchored else x.mass/(a.mass+b.mass))
                 if not x.anchored:
-                    x.heading = Heading(x.heading.phi+s*((d-v*0.1*relative_mass).phi-d.phi),rho=x.heading.rho)
-                    x.location = self.wrap(Point(Vector(x.location)+d*(1+abs(v.dot(d)))*s*relative_mass))
+                    changes.append([x,s*((d-v*0.1*relative_mass).phi-d.phi),d*(1+abs(v.dot(d)))*s*relative_mass])
                 x.on_damage(impact*0.1*relative_mass*other.hardness/x.hardness)
         a.on_collision(-d,b)
         b.on_collision( d,a)
