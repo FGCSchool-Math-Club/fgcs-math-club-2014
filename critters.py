@@ -763,9 +763,12 @@ def show_stats():
 
 for i in range(1,cmd.c+1):
     c = Critter(w,Brains.available[i % len(Brains.available)],i)
-    c.heading = Heading(0)
-    c.location = Point(10,(i+0.5)*w.height/(cmd.c+1))
-
+    #For race
+    #c.heading = Heading(0)
+    #c.location = Point(10,(i+0.5)*w.height/(cmd.c+1))
+    #For maze
+    c.location = Point((200/12)*(randrange(0,12)+0.25),(100/6)*(randrange(0,6)+0.25))
+    
 # [Critter(w,Brains.available[i % len(Brains.available)],i) for i in range(1,cmd.c+1)]
 # [Critter(w,choice(Brains.available),i) for i in range(1,cmd.c+1)]
 try:
