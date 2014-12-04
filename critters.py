@@ -102,6 +102,7 @@ class Sound(DisplayObject):
             self.faded = True
 
 class PhysicalObject(DisplayObject):
+    collision_cost    = 10
     def __init__(self,world,loc):
         DisplayObject.__init__(self,world,loc)
         self.tk_ids = {}
@@ -625,7 +626,7 @@ class World:
                 relative_mass = 1.0 - (0.0 if other.anchored else x.mass/(a.mass+b.mass))
                 if not x.anchored:
                     changes.append([x,s*((d-v*0.1*relative_mass).phi-d.phi),d*(1+abs(v.dot(d)))*s*relative_mass])
-                x.on_damage(impact*0.1*relative_mass*other.hardness/x.hardness)
+                x.on_damage(impact*(x.collision_cost/100)*relative_mass*other.hardness/x.hardness)
         a.on_collision(-d,b)
         b.on_collision( d,a)
     def wrap(self,p):
@@ -714,6 +715,7 @@ parser.add_argument('-z', default=False, action='store_true')
 parser.add_argument('--metabolic_cost',     default = 0.01, type=float)
 parser.add_argument('--movement_cost',      default = 0.1,  type=float)
 parser.add_argument('--acceleration_cost',  default = 40,   type=float)
+parser.add_argument('--collision_cost',     default = 10,   type=float)
 parser.add_argument('--stop_count',         default = None, type=int)
 parser.add_argument('--codes')
 parser.add_argument('files', nargs=argparse.REMAINDER)
@@ -723,6 +725,7 @@ cmd = parser.parse_args()
 Critter.metabolic_cost     = cmd.metabolic_cost
 Critter.movement_cost      = cmd.movement_cost
 Critter.acceleration_cost  = cmd.acceleration_cost
+PhysicalObject.collision_cost  = cmd.collision_cost
 Brains.codes = cmd.codes
 
 import atexit
