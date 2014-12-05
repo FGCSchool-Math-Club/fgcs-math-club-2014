@@ -34,7 +34,7 @@ class LookingBrain(CritterBrain):
         moving = senses['body'].moving
         if self.time_since_yum > 100:
             return "Stop"
-        if not can_see:
+        if not can_see:"green"
             turn = uniform(-0.1,+0.1)*randrange(1,4)
         else:
             closest = min(can_see, key=lambda s: s.distance)
