@@ -121,7 +121,9 @@ class MazeBrain(CritterBrain):
         else:
             closest_food = None
         if closest.color == 'brown' and closest.distance < 10 and abs(closest.direction) < 0.5:
+            return "Accelerate 0.0"
             return "Turn 1.0"
+            return "Accelerate 10.0"
         elif closest_food:
             if closest_food.distance < 5 and moving:
                return "Accelerate 0.1"
