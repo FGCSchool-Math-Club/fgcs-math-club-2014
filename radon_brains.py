@@ -4,7 +4,7 @@
 #
 from geo2d.geometry import *
 
-Users.initial = "THE VERY BEST"
+Users.initial = "Rn"
 
 class LookingBrain(CritterBrain):
     code = "l"
