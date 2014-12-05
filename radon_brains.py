@@ -122,7 +122,7 @@ class MazeBrain(CritterBrain):
             closest_food = min(visible_food, key=lambda s: s.distance)
         else:
             closest_food = None
-        if closest.color == 'brown' and closest.distance < 5:
+        if closest.color == 'brown' and closest.distance < 15:
             return "Turn 1.0"
         elif closest_food:
             if closest_food.distance < 5 and moving:
