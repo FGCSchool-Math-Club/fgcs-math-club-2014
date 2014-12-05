@@ -4,7 +4,7 @@
 #
 from geo2d.geometry import *
 
-Users.initial = "swag master 420"
+Users.initial = "hello how are you?"
 
 class LookingBrain(CritterBrain):
     code = "l"
@@ -20,7 +20,7 @@ class LookingBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
-        yums = [s for s in senses['hearing'] if s.text == "yummy butt"]
+        yums = [s for s in senses['hearing'] if s.text == "scrwo you"]
         if yums:
             self.time_since_yum = 0
         else:
