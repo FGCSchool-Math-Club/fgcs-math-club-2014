@@ -133,7 +133,7 @@ class MazeBrain(CritterBrain):
         elif closest_food == None and moving:
             return "Accelerate 0"
         elif closest_food == None:
-            "Turn" 0.5
+            return   "Turn 0.5"
         elif senses['body'].speed < 1.0:
             return "Accelerate 1.2"
         elif closest.distance > 5:
