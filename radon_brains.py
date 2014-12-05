@@ -20,7 +20,7 @@ class LookingBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
-        yums = [s for s in senses['hearing'] if s.text == "Yum"]
+        yums = [s for s in senses['hearing'] if s.text == "cool"]
         if yums:
             self.time_since_yum = 0
         else:
