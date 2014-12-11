@@ -235,7 +235,7 @@ class Critter(PhysicalObject):
         self.age = 0
         self.hardness = 0.5
         self.secreting = None
-        self.finished = False
+        self.finished = 0
         self.sense_depiction_ids = []
         world.spawn(self)
     def dump_status(self):
@@ -268,7 +268,7 @@ class Critter(PhysicalObject):
     def on_collision(self,dir,other):
         if other.goal:
             self.die("Yes!")
-            self.finished = self.age
+            self.finished += self.age
         self.whats_under.add(other)
         self.act(self.brain_on_collision(dir,other) or ("Eat" if isinstance(other,Food) else "Pass"))
     def teleport_to(self,world,loc):
@@ -495,8 +495,6 @@ class Food(PhysicalObject):
 class Pit(PhysicalObject):
     def __init__(self,world,loc):
         PhysicalObject.__init__(self,world,loc)
-        print("Pit at ",self.location)
-        #world.sound(self.location,5,"Aaha!")
         self.r = 10
         self.color = {"fill": "black", "outline": "dark red"}
         self.anchored = True
@@ -508,6 +506,28 @@ class Pit(PhysicalObject):
     def radius(self):
         return self.r
 
+class GoldStar(Block):
+    def __init__(self,world,loc):
+        PhysicalObject.__init__(self,world,loc)
+        self.r = 5
+        self.color = {"fill": "gold"}
+        self.anchored = True
+    def on_tick(self):
+        pass
+    def on_collision(self,dir,other):
+        other.finished -= 50
+        self.location = self.world.random_location()
+    def radius(self):
+        return self.r
+    def core_radius(self):
+        return self.radius()/2
+    def outline(self):
+        r    = [self.radius(),self.core_radius()]
+        loc  = self.location
+        sides = 10
+        q    = 2*math.pi/sides
+        return [(loc.x+r[a%2]*math.cos(a*q),loc.y+r[a%2]*math.sin(a*q)) for a in range(0,sides)]
+
 class World:
     height = 100
     width  = 200
@@ -515,12 +535,13 @@ class World:
     neighborhood_radius_x = width/6 +Critter.max_speed*neighborhood_refresh
     neighborhood_radius_y = height/6+Critter.max_speed*neighborhood_refresh
     color = {"fill":"#000"}
-    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0,zombies=False,stop_count=None):
+    def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,stars=0,warn=False,blocks=0,zombies=False,stop_count=None):
         self.critters = []
         self.starting_critters = []
         self.world_view = WorldView(self,5)
-        self.food = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
-        self.pits = [Pit(self,self.random_location()) for i in range(0,pits)]
+        self.food   = [Food(self,self.random_location(),randrange(2,16)) for i in range(0,food)]
+        self.pits   = [Pit(self,self.random_location()) for i in range(0,pits)]
+        self.stars  = [GoldStar(self,self.random_location()) for i in range(0,stars)]
         self.blocks = [Block(self,self.random_location(),randrange(1,10),randrange(1,10))  for i in range(0,blocks)]
         #self.finish_line()
         self.maze(6,12)
@@ -575,7 +596,7 @@ class World:
         for c in self.critters:
              c.dump_status()
     def physical_objects(self):
-        return self.critters + self.food + self.pits + self.blocks
+        return self.critters + self.food + self.pits + self.stars + self.blocks
     def display_objects(self):
         return self.physical_objects() + self.sounds
     def sound(self,loc,volume,text):
@@ -733,6 +754,7 @@ parser.add_argument('-n', default= -1, type=int)
 parser.add_argument('-c', default= 10, type=int)
 parser.add_argument('-f', default=100, type=int)
 parser.add_argument('-p', default=  0, type=int)
+parser.add_argument('-s', default=  0, type=int)
 parser.add_argument('-b', default=  0, type=int)
 parser.add_argument('-w', default=False, action='store_true')
 parser.add_argument('-z', default=False, action='store_true')
@@ -774,6 +796,7 @@ w = World(
     tick_limit = cmd.n,
     food       = cmd.f,
     pits       = cmd.p,
+    stars      = cmd.s,
     blocks     = cmd.b,
     warn       = cmd.w,
     zombies    = cmd.z,
