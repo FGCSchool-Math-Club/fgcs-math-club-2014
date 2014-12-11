@@ -99,10 +99,12 @@ class RacerBrain(CritterBrain):
         return "Accelerate {}".format(acceleration)
 
 Brains.register(RacerBrain)
+
 class MazeBrain(CritterBrain):
     code = "M"
     def __init__(self):
         CritterBrain.__init__(self)
+        self.prefers_left = True
     def on_collision(self,dir,other,senses):
         if isinstance(other,Food):
           return "Eat"
@@ -111,36 +113,49 @@ class MazeBrain(CritterBrain):
     def on_attack(self,dir,attacker,senses):
         pass
     def on_tick(self,senses):
+        if randrange(0,100) == 0: self.prefers_left = not self.prefers_left
         can_see = senses['sight']
         moving = senses['body'].moving
-        closest = min(can_see, key=lambda s: s.distance)
+        closest  = min(can_see, key=lambda s: s.distance)
+        farthest = max(can_see, key=lambda s: s.distance)
         visible_food = [x for x in can_see if x.color == 'green']
         if len(visible_food) > 0:
             closest_food = min(visible_food, key=lambda s: s.distance)
         else:
             closest_food = None
-        if closest.color == 'brown' and closest.distance < 10 and abs(closest.direction) < 0.5:
-            return "Turn 1.0"
-        elif closest_food:
-            if closest_food.distance < 5 and moving:
-               return "Accelerate 0.1"
-            elif closest_food.distance < 5 :
-                return "Eat"
-            elif not moving:
-                return "Accelerate 10.0"
+        if closest_food:
+            if closest_food.distance < 0.1:
+                if moving:
+                    return "Stop"
+                else:
+                    return "Eat"
             else:
-                return "Turn {}".format(closest.direction)
-        elif closest_food == None and moving:
-            return "Accelerate 0"
-        elif closest_food == None:
-            return   "Turn 0.5"
-        elif senses['body'].speed < 1.0:
-            return "Accelerate 1.2"
-        elif closest.distance > 5:
-            return "Pass"
-        elif closest.direction > 0:
-            return "Turn -0.5"
+                if not moving:
+                    return "Go"
+                else:
+                    return "Turn {}".format(closest_food.direction/2)
+        elif farthest.distance > 4:
+            if abs(farthest.direction) > 0.1:
+                return "Turn {}".format(farthest.direction/2)
+            elif randrange(0,10) == 0:
+                if self.prefers_left:
+                    return "Turn -1.0"
+                else:
+                    return "Turn 1.0"
+            else:
+                return "Go"
+        elif closest.distance < 5:
+            if closest.color == 'brown':
+                if self.prefers_left:
+                    return "Turn -1.0"
+                else:
+                    return "Turn 1.0"
+            else:
+                if closest.direction > 0:
+                    return "Turn -0.5"
+                else:
+                    return "Turn 0.5"
         else:
-            return "Turn 0.5"
+            return "Go"
 Brains.register(MazeBrain)
 
