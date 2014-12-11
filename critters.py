@@ -545,8 +545,9 @@ class World:
             x,y = (2*randrange(0,w),2*randrange(0,h))
             dir = randrange(0,2)
             dist = 4*randrange(0,2)-2
-            x0,y0 = ((x+dir*dist) % (2*w),(y+(1-dir)*dist) % (2*h))
-            if ((x0,y0) in cells) != ((x,y) in cells):
+            #x0,y0 = ((x+dir*dist) % (2*w),(y+(1-dir)*dist) % (2*h))
+            x0,y0 = (x+dir*dist,y+(1-dir)*dist)
+            if (0 <= x0 < 2*w) and (0 <= y0 < 2*h) and ((x0,y0) in cells) != ((x,y) in cells):
                 cells.add((x0,y0) if (x,y) in cells else (x,y))
                 #print((x,y),(x0,y0))
                 if dist < 0:
@@ -558,10 +559,10 @@ class World:
         for x,y in walls:
             for i in [-3,-1,1,3]:
                 if odd(x):
-                    p = Point((x+0.5)*cell_w,(y+0.5+i/4)*cell_h)
+                    p = Point((x+0.8)*cell_w,(y+0.8+i/4)*cell_h)
                     self.blocks.append(Block(self,p,2,cell_h/4,Heading(0),1000))
                 else:
-                    p = Point((x+0.5+i/4)*cell_w,(y+0.5)*cell_h)
+                    p = Point((x+0.8+i/4)*cell_w,(y+0.8)*cell_h)
                     self.blocks.append(Block(self,p,cell_w/4,2,Heading(0),1000))
     def random_location(self):
         return Point(randrange(0,self.width),randrange(0,self.height))
