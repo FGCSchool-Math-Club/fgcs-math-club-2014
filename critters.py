@@ -365,7 +365,8 @@ class Critter(PhysicalObject):
         forward = self.heading.phi
         for o in self.world.neighbors_of(self):
             if o != self:
-               d = self.displacement_to(o)
+               d = self.displacement_to(o)-self.eye_offset()
+               d -= d*(o.radius()/d.rho)
                # We can only see things above our horizon, which we aproximate be saying they have
                #     to be within a quarter of the way around in either direction.
                if (d.x/self.world.width)**2 + (d.y/self.world.height)**2 < (1/4)**2:
