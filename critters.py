@@ -300,7 +300,7 @@ class Critter(PhysicalObject):
         if self.dead: return
         if self.secreting and randrange(0,2) == 0:
             Secretion(self.world,self.location)
-        sharpest_turn = 0.2
+        sharpest_turn = 0.5
         if not cmd is None:
             word = cmd.split()
             if word[0] == "Stop":
