@@ -134,7 +134,7 @@ class MazeBrain(CritterBrain):
         if senses ['body'].health>5:
             closest_target=closest_star
         else:
-            closest_taget=closest_food
+            closest_target=closest_food
         if closest_target:
             if closest_target.distance < 0.1:
                 if moving:
