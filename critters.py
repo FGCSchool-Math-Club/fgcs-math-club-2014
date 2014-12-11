@@ -236,6 +236,7 @@ class Critter(PhysicalObject):
         self.hardness = 0.5
         self.secreting = None
         self.finished = False
+        self.sense_depiction_ids = []
         world.spawn(self)
     def dump_status(self):
         print(self.name)
@@ -417,6 +418,18 @@ class Critter(PhysicalObject):
         else:
             if not self.tk_ids: self.create_image(canvas)
             self.place_image(canvas,s)
+            self.draw_senses(canvas,s)
+    def draw_senses(self,canvas,s):
+        for part in self.sense_depiction_ids: canvas.delete(part)
+        outline = self.outline()
+        x,y = outline[0]
+        sd = self.sight()
+        for sight in sd: #self.sense_data['sight']:
+            d = sight.distance
+            h = sight.direction + self.heading.phi
+            self.sense_depiction_ids.append(
+                canvas.create_line(x*s,y*s, s*(x+d*math.cos(h)),s*(y+d*math.sin(h)), fill=sight.color,stipple=stipple(200/(d+1)))
+                )
     def brain_on_tick(self):
         try:
             return self.brain.on_tick(self.sense_data)
