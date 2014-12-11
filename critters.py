@@ -395,6 +395,11 @@ class Critter(PhysicalObject):
         phi  = self.heading.phi
         q    = 2*math.pi/len(self.shape)
         return [(loc.x+r*d*math.cos(a*q+phi),loc.y+r*d*math.sin(a*q+phi)) for a, d in enumerate(self.shape)]
+    def eye_offset(self):
+        r    = self.radius()
+        phi  = self.heading.phi
+        d    = self.shape[0]*0.7
+        return Vector(r*d*math.cos(phi),r*d*math.sin(phi))
     def create_image(self,canvas):
         self.tk_ids = {
             'body':  canvas.create_polygon(1,1,**self.color),
@@ -406,7 +411,8 @@ class Critter(PhysicalObject):
         outline = self.outline()
         loc  = self.location
         px = 1/s
-        x,y = outline[0]
+        eye_off = self.eye_offset()
+        x,y = loc.x+eye_off.x,loc.y+eye_off.y
         pp = self.displacement_to(self.world.pits[0] if self.world.pits else self.world.random_location()).normalized
         self.place_image_part('text', canvas,s,loc.x,loc.y)
         self.place_image_part('body', canvas,s,*[coord for p in outline for coord in p])
