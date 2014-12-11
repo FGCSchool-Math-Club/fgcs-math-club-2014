@@ -126,8 +126,17 @@ class MazeBrain(CritterBrain):
             closest_food = min(visible_food, key=lambda s: s.distance)
         else:
             closest_food = None
-        if closest_food:
-            if closest_food.distance < 0.1:
+        visible_stars = [x for x in can_see if x.color == 'gold']
+        if len(visible_stars) > 0:
+            closest_star = min(visible_stars, key=lambda s: s.distance)
+        else:
+            closest_star = None
+        if senses ['body'].health>5:
+            closest_target=closest_star
+        else:
+            closest_taget=closest_food
+        if closest_target:
+            if closest_target.distance < 0.1:
                 if moving:
                     return "Stop"
                 else:
@@ -136,7 +145,7 @@ class MazeBrain(CritterBrain):
                 if not moving:
                     return "Go"
                 else:
-                    return "Turn {}".format(closest_food.direction/2)
+                    return "Turn {}".format(closest_target.direction/2)
         elif farthest.distance > 4:
             if abs(farthest.direction) > 0.1:
                 return "Turn {}".format(farthest.direction/2)
