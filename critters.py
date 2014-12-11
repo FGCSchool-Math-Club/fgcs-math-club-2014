@@ -361,7 +361,7 @@ class Critter(PhysicalObject):
             'compass': self.heading.phi,
           }
     def sight(self):
-        objects = []
+        objects = [((self.world.width+self.world.height)/8,0,AngularIntervalSet(-1.0,1.0),self.world)]
         forward = self.heading.phi
         for o in self.world.neighbors_of(self):
             if o != self:
@@ -514,6 +514,7 @@ class World:
     neighborhood_refresh = 4
     neighborhood_radius_x = width/6 +Critter.max_speed*neighborhood_refresh
     neighborhood_radius_y = height/6+Critter.max_speed*neighborhood_refresh
+    color = {"fill":"#000"}
     def __init__(self,tick_time=0.1,tick_limit=-1,food=50,pits=0,warn=False,blocks=0,zombies=False,stop_count=None):
         self.critters = []
         self.starting_critters = []
