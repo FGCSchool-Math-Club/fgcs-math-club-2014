@@ -134,7 +134,7 @@ class MazeBrain(CritterBrain):
             closest_target=closest_food
         if closest_target:
             if closest_target.distance < 1 and moving:
-                return "Accelerate 0.7"
+                return "Accelerate 0.5"
             elif closest_target.distance < 0.1:
                 if moving:
                     return "Stop"
