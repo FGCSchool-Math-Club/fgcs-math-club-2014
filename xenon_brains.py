@@ -128,13 +128,13 @@ class MazeBrain(CritterBrain):
             closest_star = min(visible_stars, key=lambda s: s.distance)
         else:
             closest_star = None
-        if senses ['body'].health>5:
+        if senses ['body'].health>10:
             closest_target=closest_star
         else:
             closest_target=closest_food
         if closest_target:
             if closest_target.distance < 1 and moving:
-                return "Accelerate 0.7
+                return "Accelerate 0.7"
             elif closest_target.distance < 0.1:
                 if moving:
                     return "Stop"
